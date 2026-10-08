@@ -1,0 +1,51 @@
+company,website,location,contact_name,contact_title,contact_source,fit_score,fit_reason,source_urls,subject,email_body,flags
+C.D. Smith Construction,https://www.cdsmith.com,"Fond du Lac, WI (offices in Milwaukee, Madison, La Crosse)",Norbert (Norb) Schmidt,President,https://www.cdsmith.com/blog/cd-smith-construction-welcomes-norbert-norb-schmidt-president?hs_amp=true,9,Mid-size WI GC that self-performs heavy equipment work and equipment moving and builds warehouses for manufacturers; new President with an operational-excellence background.,https://www.cdsmith.com/industrial | https://www.cdsmith.com/blog/cd-smith-construction-welcomes-norbert-norb-schmidt-president?hs_amp=true,moving material for your self-perform crews,"Hi Norb,
+
+I was reading C.D. Smith's industrial page and noticed how much you self-perform, from steel erection and precast to heavy equipment operation and equipment moving.
+
+We build autonomous mobile robots that move pallets, carts and materials around warehouses and logistics yards, and they're already deployed in supply-chain and warehouse operations. We're now looking at construction, where crews spend a lot of hours hauling materials around yards, prefab shops and job sites.
+
+Would you be open to a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense?
+
+Alex
+Example Robotics",Removed: 'that usually means a lot of crew hours hauling material between your yard and the work' -> inference about C.D. Smith not in research notes; replaced with the startup's own pitch line
+Egan Company,https://www.eganco.com,"Kasson / Rochester, MN",Brian Harren,Vice President of Electrical Engineering,https://finance.yahoo.com/news/contractor-egan-build-facility-kasson-171900708.html,8,"Runs its own 40,000 sq ft prefab shop shipping assemblies to projects nationwide, a direct materials-handling use case; specialty (MEP) contractor rather than GC.",https://www.eganco.com/project/egan-company-kasson-prefabrication-facility/ | https://www.eganco.com/prefabrication-groundbreaking/ | https://finance.yahoo.com/news/contractor-egan-build-facility-kasson-171900708.html,your kasson prefab facility,"Hi Brian,
+
+I came across Egan's 40,000 sq ft prefab facility in Kasson, which wrapped up in February 2025 and builds electrical assemblies for your projects around the country.
+
+We build autonomous mobile robots that move pallets, carts and materials around warehouses and logistics yards, and they're already deployed in supply-chain and warehouse operations. A prefab shop seems like a natural next place for them.
+
+Would you be open to a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense?
+
+Alex
+Example Robotics","Removed: 'with assemblies moving between stations, staging and shipping all day' -> describes Egan's internal workflow, not in research notes"
+Krusinski Construction Company,https://www.krusinski.com,"Oak Brook, IL (projects incl. Dallas area)",Jeff Krusinski,President & CEO,https://www.krusinski.com/,7,"Industrial and warehouse GC, strong partner angle (builds the facilities AMRs run in); no confirmed own yard or prefab shop.",https://rejournals.com/krusinski-construction-company-building-727080-square-foot-industrial-warehouse-in-dallas-market/ | https://www.krusinski.com/,iac pleasant run,"Hi Jeff,
+
+I read about IAC Pleasant Run, the two-building, 727,080 sq ft warehouse project in Lancaster, Texas that Krusinski started in December.
+
+We build autonomous mobile robots that move pallets, carts and materials around warehouses and logistics yards, and they're already deployed in supply-chain and warehouse operations. Since warehouse and distribution is one of your core markets, I'm curious whether there's a fit on your own sites or with the owners you build for.
+
+Would you be open to a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense?
+
+Alex
+Example Robotics","Softened: 'since you build so many of these' -> research supports warehouse being a core market and 13 projects for one client, not volume overall"
+Evans General Contractors,https://evansgeneralcontractors.com,"Atlanta, GA (8 US offices)",John De Lay,Chief Operating Officer,https://evansgeneralcontractors.com/evans-announces-new-chief-operating-officer/,6,"Big warehouse builder already fluent in AGVs/automation, so a strong channel partner; likely above the mid-size revenue band.",https://evansgeneralcontractors.com/markets/distribution-and-logistics/ | https://evansgeneralcontractors.com/evans-announces-new-chief-operating-officer/ | https://evansgeneralcontractors.com/evans-national-and-global-reach-recognized-in-enrs-2026-rankings-of-top-contractors/,agvs on your distribution page,"Hi John,
+
+Evans' distribution and logistics page says you've built close to 100 million sq ft of warehouse space, and it lists AGVs and automation among the systems you build around.
+
+We build autonomous mobile robots that move pallets, carts and materials around warehouses and logistics yards, and they're already deployed in supply-chain and warehouse operations. Since AGVs are already on your list, I'm curious whether moving material on your own job sites is something you've looked at.
+
+Would you be open to a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense?
+
+Alex
+Example Robotics",Softened: 'your teams already plan for AGVs in client buildings' -> page lists AGVs as expertise only
+Knutson Construction,https://knutsonconstruction.com,"Minneapolis, MN (also Mankato, Rochester)",unknown,unknown (target: VP Operations),unknown,5,"Mid-size MN GC growing into data centers; no evidence of its own yard, warehouse or prefab shop.",https://www.enr.com/articles/63591-midwest-people-august-2026 | https://knutsonconstruction.com/news_insights/,your new mission critical group,"Hi there,
+
+I saw in ENR that Knutson brought on Travis Pakonen as director of mission critical, focused on data centers and digital infrastructure.
+
+We build autonomous mobile robots that move pallets, carts and materials around warehouses and logistics yards, and they're already deployed in supply-chain and warehouse operations. We're now looking at construction, where crews spend a lot of hours hauling materials around yards, prefab shops and job sites.
+
+Would you be open to a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense?
+
+Alex
+Example Robotics",Removed: 'data center jobs involve a lot of repetitive material moves' -> generalization not in research notes
