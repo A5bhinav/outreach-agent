@@ -1,0 +1,19 @@
+# Demo config. Replace every field with your real details before using drafts.
+# The writer may only use proof points listed here, so keep them true.
+company_name: "Example Robotics"   # placeholder
+pitch: >
+  We build autonomous mobile robots that move pallets, carts and materials around
+  warehouses and logistics yards. Our robots are already deployed in supply-chain
+  and warehouse operations, and we're looking at construction, where crews spend a
+  lot of hours hauling materials around laydown yards, prefab shops and job sites.
+icp_notes: >
+  Mid-size US general contractors and construction firms (roughly $50M-$1B revenue)
+  that run their own warehouse, equipment yard, or prefab/modular shop, or that do
+  large industrial, warehouse or distribution-center builds. Signs of a good fit:
+  recent facility expansion, prefab/offsite construction, a VDC or innovation team,
+  hiring for logistics or equipment roles.
+proof_points:
+  - "PLACEHOLDER: robots running in live warehouse deployments today"
+  - "PLACEHOLDER: replace with a real metric, e.g. hours of manual hauling saved per week"
+sender_name: "Alex"                # placeholder
+ask: "a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense"
