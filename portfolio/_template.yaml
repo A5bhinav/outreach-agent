@@ -1,0 +1,20 @@
+# New portfolio company profile. Fill in every PLACEHOLDER; delete optional lines you don't use.
+# The writer may only use facts listed here, so keep them true.
+company_name: "PLACEHOLDER: Company name"
+founder_name: "PLACEHOLDER: Founder's full name"
+pitch: >
+  PLACEHOLDER: 2-3 sentences on what the company does and for whom, in plain words.
+icp_notes: >
+  PLACEHOLDER: who they want to meet (type, size, region) and signs of a good fit.
+proof_points:
+  - "PLACEHOLDER: a true, specific proof point (customers, deployments, a metric)"
+# Optional, but they make intros far more convincing:
+# founder_bio: "one line on the founder's relevant background"
+# stage_and_backers: "Seed, $XM, led by ..."
+# investor_note: "why your firm backed them, in one line"
+# offer: "a concrete offer, e.g. a free pilot"
+# roles:                      # for hiring requests
+#   - title: ""
+#     location: ""
+#     comp: ""
+#     why_interesting: ""

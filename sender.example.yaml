@@ -1,0 +1,12 @@
+# Who the emails come from, shared by every portfolio company. Copy this file to sender.yaml
+# (git-ignored, so your details stay off GitHub) and fill it in. A company file can override
+# any of these with its own sender: block.
+# voice: investor = a warm double-opt-in intro from you on the startup's behalf;
+#        founder  = written as the founder.
+voice: investor
+name: "PLACEHOLDER: Your Name"
+title: "Partner"
+firm: "PLACEHOLDER: Your Fund"
+email: "PLACEHOLDER: you@yourfund.com"   # From: on the .eml drafts and the Gmail account links open in
+# Required by CAN-SPAM in the footer of every email; emails are blocked until it's set.
+firm_address: "PLACEHOLDER: 123 Main St, Suite 100, San Francisco, CA 94105"

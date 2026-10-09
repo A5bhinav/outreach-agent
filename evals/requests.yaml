@@ -1,6 +1,6 @@
 # Representative portfolio support requests. Run them with evals/run.py before and after a
 # change, then compare the scores (evals/score.py). Each entry: id, mode it should route to,
-# the request text, and the config to use (defaults to startup.yaml).
+# the request text, and optionally the portfolio company (defaults to --company).
 - id: gc-robotics
   expect_mode: companies
   request: find general contractors and construction firms that might want robotics for materials handling, mid-size, US

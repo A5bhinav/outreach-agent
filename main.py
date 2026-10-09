@@ -1,8 +1,10 @@
 """outreach-agent: turn a portfolio support request into researched, send-ready outreach drafts.
 
 Usage:
-    python main.py "find general contractors ... US" --config startup.yaml
-    python main.py "find systems engineers who've deployed AMR fleets" --n 10 --config startup.yaml
+    python main.py "find general contractors ... US" --company acme-robotics
+    python main.py "find systems engineers for Acme Robotics who've deployed AMR fleets" --n 10
+    python main.py --new-company "Acme Robotics"     # create portfolio/acme-robotics.yaml to fill in
+    python main.py --list-companies
     python main.py --mark-sent outputs/<run>          # after sending: record them in the ledger
     python main.py --opt-out someone@example.com      # never contact again, for any portfolio company
 
@@ -23,7 +25,7 @@ from pathlib import Path
 import anthropic
 import yaml
 
-from agents import llm
+from agents import llm, profiles
 from agents.compliance import Ledger, missing_legal
 from agents.contacts import find_contacts
 from agents.people import find_people
@@ -35,8 +37,6 @@ from agents.writer import write_one
 from output import write_outputs
 
 ROOT = Path(__file__).parent
-REQUIRED = ["company_name", "pitch", "sender"]
-REQUIRED_SENDER = ["name"]
 
 
 def _checkpoint(outdir: Path, state: dict) -> None:
@@ -76,11 +76,16 @@ class Finisher:
     def __init__(self, request: str, startup: dict, p: dict, outdir: Path, ledger: Ledger, state: dict):
         self.request, self.startup, self.p, self.outdir, self.ledger, self.state = request, startup, p, outdir, ledger, state
         self.tasks: list[asyncio.Task] = []
-        self.done: list[dict] = []
-        self.expected = 0
+        # Finished and selected targets are checkpointed so --resume can pick up where a run stopped.
+        self.done: list[dict] = state.setdefault("done", [])
+        state.setdefault("selected", [])
+        self.expected = len(self.done)
 
-    def start(self, targets: list[dict], need_contacts: bool) -> None:
+    def start(self, targets: list[dict], need_contacts: bool, record: bool = True) -> None:
         self.expected += len(targets)
+        if record:
+            self.state["selected"] += [{"target": t, "need_contacts": need_contacts} for t in targets]
+            _checkpoint(self.outdir, self.state)
         self.tasks += [asyncio.create_task(self._one(t, need_contacts)) for t in targets]
 
     async def _one(self, t: dict, need_contacts: bool) -> dict | None:
@@ -93,6 +98,7 @@ class Finisher:
         t = await write_one(t, self.startup, self.p)
         t = await review_one(t, self.startup, self.p)
         self.done.append(t)
+        _checkpoint(self.outdir, self.state)
         rows = write_outputs(self.done, self.request, self.outdir, self.startup)
         row = next(r for r in rows if r["target"] == t["name"])
         ready = sum(r["status"] == "ready" for r in rows)
@@ -189,22 +195,35 @@ def _show_plan(p: dict, n: int) -> None:
 
 
 async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger, preflight: bool = True,
-              confirm=None) -> list[dict]:
-    state: dict = {"request": request}
+              confirm=None, resume: dict | None = None, profile: str = "") -> list[dict]:
+    """Run the pipeline. With `resume` (a previous run.json), reuse its plan and finished targets,
+    finish the targets it had already selected, and only search again if it never got that far."""
+    state: dict = resume or {"request": request, "n": n, "profile": profile}
     try:
         if preflight:
             await llm.preflight()
         else:
             llm.STRICT_400 = False
-        p = await plan(request, startup)
-        state["plan"] = p
-        _checkpoint(outdir, state)
-        if confirm and not confirm(p):
-            raise SystemExit("stopped after planning; nothing else was spent")
+        if resume and resume.get("plan"):
+            p = resume["plan"]
+            llm.log(f"resume: reusing the plan, {len(resume.get('done', []))} finished and "
+                    f"{len(resume.get('selected', []))} selected targets")
+        else:
+            p = await plan(request, startup)
+            state["plan"] = p
+            _checkpoint(outdir, state)
+            if confirm and not confirm(p):
+                raise SystemExit("stopped after planning; nothing else was spent")
 
         seen = Seen(ledger)
         fin = Finisher(request, startup, p, outdir, ledger, state)
-        if p["mode"] == "people":
+        if state["selected"]:
+            finished = {t["name"] for t in fin.done}
+            todo = [s for s in state["selected"] if s["target"]["name"] not in finished]
+            for s_ in todo:
+                fin.start([s_["target"]], s_["need_contacts"], record=False)
+            llm.log(f"resume: finishing {len(todo)} remaining selected target(s)")
+        elif p["mode"] == "people":
             await _people(request, p, n, seen, fin)
         else:
             await _companies(request, p, n, seen, fin, state, outdir)
@@ -212,7 +231,9 @@ async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger,
         if not rows:
             raise SystemExit("no usable targets after research (none had fresh sourced facts and met the must-haves)")
         ready = {r["target"] for r in rows if r["status"] == "ready"}
-        ledger.record([t for t in fin.done if t["name"] in ready], run=str(outdir.resolve()))
+        if not state.get("recorded"):  # a resumed run that already finished doesn't record twice
+            ledger.record([t for t in fin.done if t["name"] in ready], run=str(outdir.resolve()))
+            state["recorded"] = True
         return rows
     finally:
         _checkpoint(outdir, state)
@@ -223,20 +244,6 @@ def _pos_int(s: str) -> int:
     if v < 1:
         raise argparse.ArgumentTypeError("must be >= 1")
     return v
-
-
-def _load_config(path: str) -> dict:
-    p = Path(path)
-    if not p.exists() and not p.is_absolute():
-        p = ROOT / path
-    if not p.exists():
-        sys.exit(f"config not found: {path}")
-    cfg = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
-    missing = [k for k in REQUIRED if not cfg.get(k)]
-    missing += [f"sender.{k}" for k in REQUIRED_SENDER if not (cfg.get("sender") or {}).get(k)]
-    if missing:
-        sys.exit(f"config {p} is missing: {', '.join(missing)}")
-    return cfg
 
 
 def _confirm(n: int, yes: bool, plan_only: bool):
@@ -254,7 +261,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("request", nargs="?", help="who you want to meet or find, in plain English")
     ap.add_argument("--n", type=_pos_int, default=5, help="number of targets to keep (default 5)")
-    ap.add_argument("--config", default="startup.yaml", help="portfolio company profile (YAML)")
+    ap.add_argument("--company", help="portfolio company (file name in portfolio/, or part of its name); "
+                                      "picked from the request or automatically if omitted")
+    ap.add_argument("--config", help="path to a company profile outside portfolio/")
+    ap.add_argument("--sender", help="sender profile (default sender.yaml)")
+    ap.add_argument("--new-company", metavar="NAME", help="create portfolio/<name>.yaml from the template and exit")
+    ap.add_argument("--list-companies", action="store_true", help="list portfolio company profiles and exit")
     ap.add_argument("--out", default=None, help="output folder (default outputs/<timestamp>)")
     ap.add_argument("--ledger", default=str(ROOT / "ledger.csv"), help="shared contact ledger (default ledger.csv)")
     ap.add_argument("--opt-out", metavar="EMAIL_OR_DOMAIN", help="record an opt-out in the ledger and exit")
@@ -268,6 +280,7 @@ def main() -> None:
     ap.add_argument("--allow-placeholders", action="store_true",
                     help="run even though the config has PLACEHOLDER values (every email will be blocked)")
     ap.add_argument("--skip-preflight", action="store_true", help="skip the startup web-search check")
+    ap.add_argument("--resume", metavar="RUN_DIR", help="continue an interrupted run from its run.json")
     args = ap.parse_args()
 
     if args.opt_out:
@@ -279,17 +292,49 @@ def main() -> None:
         n = Ledger(Path(args.ledger), "").mark_sent(str(Path(args.mark_sent).resolve()), only)
         print(f"marked {n} draft(s) from {args.mark_sent} as sent")
         return
+    if args.new_company:
+        try:
+            path = profiles.new_company(args.new_company)
+        except profiles.ProfileError as e:
+            sys.exit(str(e))
+        print(f"created {path.relative_to(ROOT)}: fill in every PLACEHOLDER, then run with --company {path.stem}")
+        if not profiles.SENDER.exists():
+            print(f"also copy {profiles.SENDER_EXAMPLE.name} to {profiles.SENDER.name} and fill in your details")
+        return
+    if args.list_companies:
+        for slug, path in profiles.companies().items():
+            cfg = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            todo = " (has PLACEHOLDERs)" if "PLACEHOLDER" in path.read_text(encoding="utf-8") else ""
+            print(f"{slug:<28} {str(cfg.get('company_name', '')).replace('PLACEHOLDER:', '').strip()}{todo}")
+        return
+    resume = None
+    if args.resume:
+        rj = Path(args.resume) / "run.json"
+        if not rj.exists():
+            sys.exit(f"nothing to resume: {rj} not found")
+        resume = json.loads(rj.read_text(encoding="utf-8"))
+        args.request = args.request or resume["request"]
+        args.n = resume.get("n", args.n)
+        args.out = args.resume
+        if not (args.company or args.config) and resume.get("profile"):
+            args.config = resume["profile"]
     if not args.request:
         ap.error("a request is required")
 
-    startup = _load_config(args.config)
+    try:
+        profile_path = profiles.resolve(args.company, args.config, args.request)
+        startup = profiles.load(profile_path, Path(args.sender) if args.sender else None)
+    except profiles.ProfileError as e:
+        sys.exit(str(e))
+    llm.log(f"profile: {profile_path.relative_to(ROOT) if profile_path.is_relative_to(ROOT) else profile_path}")
     problems = []
     if "PLACEHOLDER" in yaml.safe_dump(startup):
         problems.append("it still has PLACEHOLDER values")
     if missing := missing_legal(startup):
         problems.append(f"the email footer needs {', '.join(missing)}")
     if problems and not (args.allow_placeholders or args.plan_only):
-        sys.exit(f"fix {args.config} first: {'; '.join(problems)}. Every email would be blocked, so nothing was "
+        where = f"{profile_path.name} / {profiles.SENDER.name}"
+        sys.exit(f"fix {where} first: {'; '.join(problems)}. Every email would be blocked, so nothing was "
                  "spent. (Use --plan-only to preview, or --allow-placeholders for a dry run.)")
     llm.EFFORT, llm.CONCURRENCY = args.effort, args.concurrency
     outdir = Path(args.out) if args.out else ROOT / "outputs" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -297,7 +342,8 @@ def main() -> None:
 
     try:
         rows = asyncio.run(run(args.request, startup, args.n, outdir, ledger, preflight=not args.skip_preflight,
-                               confirm=_confirm(args.n, args.yes, args.plan_only)))
+                               confirm=_confirm(args.n, args.yes, args.plan_only), resume=resume,
+                               profile=str(profile_path.resolve())))
     except anthropic.AuthenticationError:
         sys.exit("no valid Anthropic credentials (set ANTHROPIC_API_KEY or run `ant auth login`)")
     except (*llm.FATAL, anthropic.BadRequestError) as e:

@@ -1,7 +1,7 @@
-# Portfolio company profile. Make one file per company and pass it with --config.
-# Replace every PLACEHOLDER with real details. Any email that still contains a
-# placeholder value is marked "not ready to send". The writer may only use proof
-# points listed here, so keep them true.
+# Portfolio company profile: one file per company in portfolio/, picked with --company <file name>
+# (or automatically when the request names the company). Who the emails come from lives in
+# sender.yaml, shared by every company. Replace every PLACEHOLDER with real details; the tool
+# refuses to run while any remain. The writer may only use facts listed here, so keep them true.
 company_name: "PLACEHOLDER: Example Robotics"
 founder_name: "PLACEHOLDER: Jordan Lee"
 pitch: >
@@ -28,13 +28,3 @@ icp_notes: >
 proof_points:
   - "PLACEHOLDER: robots running in live warehouse deployments today"
   - "PLACEHOLDER: replace with a real metric, e.g. hours of manual hauling saved per week"
-# Who the emails come from. voice: investor = a warm intro from you on the startup's
-# behalf (the founder is mentioned in third person); founder = written as the founder.
-sender:
-  voice: investor
-  name: "PLACEHOLDER: Your Name"
-  title: "Partner"
-  firm: "PLACEHOLDER: Your Fund"
-  email: "PLACEHOLDER: you@yourfund.com"   # From: on the .eml drafts; send from the firm's own domain
-  # Required by CAN-SPAM in the footer of every email; emails are blocked until it's set.
-  firm_address: "PLACEHOLDER: 123 Main St, Suite 100, San Francisco, CA 94105"

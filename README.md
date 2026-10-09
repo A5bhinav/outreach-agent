@@ -46,24 +46,33 @@ export APOLLO_API_KEY=...             # optional: verified personal emails for n
 
 Web search and web fetch must be enabled for your organization in the Claude Console.
 
-Make one profile per portfolio company (copy `startup.yaml`):
+**Profiles.** Each portfolio company gets a file in `portfolio/`; your own details live once in `sender.yaml`.
 
-1. **Company details.** Fill in the company name, founder, pitch, ICP notes and proof points.
-2. **Optional fields that make intros far stronger.** These are `founder_bio`, `stage_and_backers`, `investor_note` and `offer`, plus a `roles:` block for hiring requests.
-3. **Sender block.** Set `sender` to yourself, including `firm_address`. Every email carries it in its footer.
-4. **Voice.** `voice: investor` (the default) writes a double-opt-in intro from you; `voice: founder` writes as the founder.
+```bash
+cp sender.example.yaml sender.yaml                 # your name, title, firm, email, firm postal address
+python main.py --new-company "Acme Robotics"       # creates portfolio/acme-robotics.yaml from the template
+python main.py --list-companies                    # shows each profile and whether it still has PLACEHOLDERs
+```
 
-The tool refuses to run while the profile has `PLACEHOLDER` values or no footer address, so it
-won't spend money on emails it would have to block. Use `--plan-only` to preview a plan anyway.
+Each company file has:
+- **Required:** name, founder, pitch, who they want to reach, and true proof points.
+- **Optional, but they make intros far stronger:** `founder_bio`, `stage_and_backers`, `investor_note` and `offer`, plus a `roles:` block for hiring requests.
+
+The writer only uses facts from these files. `sender.yaml` is git-ignored, so your details stay off GitHub. A company file can override any sender field with its own `sender:` block, for example `voice: founder` to write as the founder instead of as you.
+
+The tool refuses to run while a profile or `sender.yaml` has `PLACEHOLDER` values or no footer address, so it won't spend money on emails it would have to block. Use `--plan-only` to preview a plan anyway.
 
 ## Running it
 
 ```bash
 # Meet companies (shows the plan, asks to proceed; default 5 targets)
-python main.py "find general contractors and construction firms that might want robotics for materials handling, mid-size, US" --config startup.yaml
+python main.py "find general contractors and construction firms that might want robotics for materials handling, mid-size, US" --company acme-robotics
 
-# Find people
-python main.py "find systems engineers who have deployed autonomous mobile robot fleets in warehouses" --n 10 --config startup.yaml
+# Find people (the company is picked from the request when it names one)
+python main.py "Acme Robotics needs systems engineers who have deployed AMR fleets in warehouses" --n 10
+
+# A run was interrupted? Continue it without redoing finished work
+python main.py --resume outputs/20261009-142233
 
 # After sending: record what went out (all ready drafts, or --only "Name A,Name B")
 python main.py --mark-sent outputs/20261009-142233
@@ -93,9 +102,9 @@ Each run writes to `outputs/<timestamp>/` (or `--out DIR`), updated as each targ
 Shared inboxes (info@) are labeled as such. The email then greets the team and asks them to pass
 it to the named person.
 
-Options: `--n` (default 5), `--config`, `--out`, `--yes`, `--plan-only`, `--effort`,
-`--concurrency`, `--ledger`, `--mark-sent`/`--only`, `--opt-out`, `--allow-placeholders`,
-`--skip-preflight`.
+Options: `--n` (default 5), `--company`, `--config`, `--sender`, `--out`, `--yes`, `--plan-only`,
+`--resume`, `--effort`, `--concurrency`, `--ledger`, `--mark-sent`/`--only`, `--opt-out`,
+`--new-company`, `--list-companies`, `--allow-placeholders`, `--skip-preflight`.
 
 ## Contact ledger
 
@@ -115,6 +124,7 @@ finding people. Run them before and after a change:
 ```bash
 python evals/run.py --n 3 --only gc-robotics,amr-systems-eng   # real API calls; costs money
 python evals/score.py evals/results/<timestamp>/*              # re-score finished runs
+python evals/judge.py outputs/<run>                            # model-graded quality (or --judge on run.py)
 ```
 
 Scores per run:
@@ -125,6 +135,25 @@ Scores per run:
 - median length, and similarity between emails (lower means less templated);
 - dated and stale facts;
 - errors and cost.
+
+The optional judge (`evals/judge.py`) plays a skeptical recipient. It scores each message 1-5 on specificity, credibility, relevance and human tone, says whether they'd plausibly reply, and gives the single biggest improvement.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+The suite runs offline with a scripted stand-in for Claude, so it makes no API calls. It covers:
+- both modes end to end;
+- the ledger and opt-out rules;
+- the second search round and resume;
+- the reviewer's rewrite policy, fact checks and placeholder blocking;
+- the CLI commands;
+- the request loop's error handling.
+
+GitHub Actions runs it on every push.
 
 ## Cost
 
@@ -140,8 +169,7 @@ estimate before you confirm, and the final log line prints totals by step.
 - **People search:** it reports evidence of work only. No scores are shown, no personal traits are inferred, and a person decides whom to contact.
 - **Sending:** no sending code exists. Review every message yourself.
 
-`examples/` holds a 5-company demo from an earlier version, produced partly by hand. A fresh
-run with a real profile is the best demo.
+`examples/` holds a 5-company demo from an earlier version, produced partly by hand. A fresh run with a real profile is the best demo.
 
-Not built: Harmonic and Affinity integrations, creating Gmail drafts through the Gmail API, and
-resuming a crashed run (`run.json` holds the data, but nothing reads it back yet).
+Not built: Harmonic and Affinity integrations, and creating Gmail drafts through the Gmail API.
+The Gmail compose links and `.eml` drafts cover sending without OAuth setup.

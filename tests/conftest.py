@@ -128,6 +128,7 @@ def pages(monkeypatch):
 
 @pytest.fixture
 def profile(tmp_path) -> dict:
-    cfg = yaml.safe_load((ROOT / "startup.yaml").read_text())
+    cfg = yaml.safe_load((ROOT / "portfolio" / "example-robotics.yaml").read_text())
+    cfg["sender"] = yaml.safe_load((ROOT / "sender.example.yaml").read_text())
     text = yaml.safe_dump(cfg).replace("PLACEHOLDER: ", "")
     return yaml.safe_load(text)

@@ -152,3 +152,48 @@ def test_fact_check_blocks_unsupported_opener(fake_model, pages, profile, tmp_pa
 
 def test_fact_fixture_unused_guard():
     assert fact("https://x")["source_url"] == "https://x"
+
+
+def test_resume_finishes_selected_targets_without_redoing_work(fake_model, pages, profile, tmp_path):
+    import json
+    calls = {"n": 0}
+    real_writer = fake_model.writer
+
+    def flaky_writer(label, prompt):  # the second target's writer "crashes" the first run
+        calls["n"] += 1
+        if "q2" in label and calls["n"] < 10:
+            raise RuntimeError("simulated crash")
+        return real_writer(label, prompt)
+
+    fake_model.handlers["writer"] = flaky_writer
+    rows = run(profile, tmp_path)                       # first run: one target lost to the crash
+    assert [r["target"] for r in rows] == ["Acme q1 Inc"]
+    state = json.loads((tmp_path / "out" / "run.json").read_text())
+    assert len(state["selected"]) == 2 and len(state["done"]) == 1 and state["recorded"]
+
+    # Simulate an interrupted run: nothing recorded yet, one target unfinished.
+    state["recorded"] = False
+    (tmp_path / "ledger.csv").unlink()
+    calls["n"] = 100
+    before = len(fake_model.calls)
+    led = compliance.Ledger(tmp_path / "ledger.csv", profile["company_name"])
+    rows = asyncio.run(M.run(state["request"], profile, 2, tmp_path / "out", led, preflight=False, resume=state))
+    assert {r["target"] for r in rows} == {"Acme q1 Inc", "Acme q2 Inc"}
+    steps = [s for s, _, _ in fake_model.calls[before:]]
+    assert "planner" not in steps and "sourcer" not in steps and "research" not in steps
+    assert steps.count("writer") == 1                   # only the unfinished target
+    assert len(list(csv.DictReader(open(tmp_path / "ledger.csv")))) == 2
+
+
+def test_eval_scorer_and_judge(fake_model, pages, profile, tmp_path, monkeypatch):
+    import evals.judge as J
+    import evals.score as S
+    run(profile, tmp_path)
+    s = S.score(tmp_path / "out", "companies")
+    assert s["mode_ok"] and s["ready"] == 2 and s["ready_by_channel"] == {"email": 2} and s["body_similarity"] > 0.9
+
+    async def fake_judge(system, prompt, schema, **kw):
+        return {"specificity": 4, "credibility": 4, "relevance": 3, "human_tone": 5, "would_reply": True, "critique": "ok"}
+    monkeypatch.setattr(J.llm, "run_structured", fake_judge)
+    j = asyncio.run(J.judge(tmp_path / "out"))
+    assert j["judged"] == 2 and j["specificity"] == 4 and j["would_reply_share"] == 1.0
