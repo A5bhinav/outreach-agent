@@ -160,6 +160,8 @@ class Ledger:
             w.writerows(rows)
 
     def record(self, targets: list[dict], run: str = "") -> None:
+        if not targets:
+            return
         today = datetime.date.today().isoformat()
         new = [{
             "date": today, "portfolio_company": self.pc, "target": t["name"], "company": t.get("company", t["name"]),
