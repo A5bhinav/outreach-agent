@@ -8,6 +8,8 @@ each one, written as you, the investor. Each message comes with a follow-up and 
 LinkedIn note. Results land on a review page with a one-click action per target.
 **It never sends anything.** You review each message and send it yourself.
 
+![The review app: targets on the left, an editable draft in the middle, the evidence behind it on the right](docs/review-app.png)
+
 ## Quick start (no API key needed)
 
 ```bash
@@ -103,12 +105,12 @@ python main.py --opt-out jane@example.com      # or a domain: --opt-out example.
 
 Each run writes to `outputs/<timestamp>/` (or `--out DIR`), updated as each target finishes:
 
-- `results.html`: **the review page; open it in a browser.**
-  - A summary table at the top, with each target's channel, status and one-click action:
-    - **email:** a pre-filled Gmail compose window, opened in the sender's account;
-    - **LinkedIn note:** the person's profile;
-    - **contact form:** the company's form.
-  - Then each message, with copy buttons, its follow-up and send date, anything to check before sending, and the evidence (collapsed).
+- `results.html`: **the review app; open it in a browser.** It's a single offline file.
+  - **Left:** every target with its status (ready, needs review, sent), channel and the hook it opens with, plus filters and search.
+  - **Middle:** the draft, which you can edit. "Open in Gmail" (or LinkedIn, or the contact form) always uses your edited text, and the locked legal footer is added automatically. There are tabs for the follow-up and the LinkedIn note, plus copy and `.eml` download.
+  - **Right:** why this target and why now, with each criterion, the opening fact and whether it was found on its source page, the contact check, and the dated research notes with sources.
+  - **Tracking what you send:** mark messages as sent as you go. Edits and sent status are saved in your browser. The app then gives you the exact `--mark-sent` command, so the shared ledger knows what went out.
+  - **Shortcuts:** `↑`/`↓` move, `s` mark sent, `e` edit, `/` search, `g` open.
 - `results.md`: the same content in Markdown.
 - `drafts/*.eml` and `*.followup.eml`: draft files that open in Mail, Outlook or Thunderbird.
 - `results.csv`: one row per target, ready rows first.

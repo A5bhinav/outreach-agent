@@ -8,7 +8,7 @@
 """
 import csv
 import datetime
-import html
+import json
 import re
 from email.headerregistry import Address
 from email.message import EmailMessage
@@ -181,72 +181,42 @@ def _md(rows: list[dict], facts: list[list[dict]], request: str) -> str:
     return "\n".join(md)
 
 
-_CSS = """
-:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#e3e3e3;--card:#fafafa;--ok:#1a7f37;--warn:#9a6700;--link:#0b57d0}
-@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#eaeaea;--muted:#9a9a9a;--line:#2e2e2e;--card:#1c1c1c;--ok:#4ac26b;--warn:#d4a72c;--link:#8ab4f8}}
-body{background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,system-ui,sans-serif;max-width:960px;margin:0 auto;padding:16px}
-a{color:var(--link)} table{border-collapse:collapse;width:100%;font-size:14px} td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
-.wrap{overflow-x:auto} .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin:18px 0}
-.ok{color:var(--ok);font-weight:600} .warn{color:var(--warn)} pre{white-space:pre-wrap;font:inherit;margin:6px 0;padding:10px;border-left:3px solid var(--line)}
-button{font:inherit;font-size:13px;padding:2px 10px;margin-left:6px;cursor:pointer} .muted{color:var(--muted);font-size:13px}
-"""
+_TEMPLATE = Path(__file__).parent / "ui" / "review.html"
 
 
-def _html(rows: list[dict], facts: list[list[dict]], request: str) -> str:
-    e = html.escape
-    ready = sum(r["status"] == "ready" for r in rows)
-
-    def link(url: str, text: str) -> str:
-        return f'<a href="{e(url)}" target="_blank" rel="noopener">{e(text)}</a>' if url else ""
-
-    def block(label: str, text: str, extra: str = "") -> str:
-        return (f'<div><b>{e(label)}</b>{extra}<button onclick="navigator.clipboard.writeText(this.parentNode.querySelector(\'pre\').innerText)">Copy</button>'
-                f"<pre>{e(text)}</pre></div>")
-
-    out = [f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
-           f"<title>Outreach drafts</title><style>{_CSS}</style>",
-           f"<h1>Outreach drafts</h1><p class=muted>{e(request)}</p>",
-           f"<p><b>{ready} of {len(rows)} ready.</b> Nothing has been sent. Read each message, use its action, then run "
-           f"<code>python main.py --mark-sent &lt;this folder&gt;</code>.</p>",
-           "<div class=wrap><table><tr><th>#</th><th>Target</th><th>Contact</th><th>Channel</th><th>Status</th><th>Action</th></tr>"]
-    for i, r in enumerate(rows, 1):
-        cls = "ok" if r["status"] == "ready" else "warn"
-        out.append(f"<tr><td>{i}</td><td><a href='#t{i}'>{e(r['target'])}</a></td><td>{e(r['contact_name'] if r['contact_name'] != 'unknown' else '—')}</td>"
-                   f"<td>{e(r['channel'])}</td><td class={cls}>{e(r['status'])}</td><td>{link(r['send_link'], 'Open')}</td></tr>")
-    out.append("</table></div>")
-    for i, (r, fs) in enumerate(zip(rows, facts), 1):
-        cls = "ok" if r["status"] == "ready" else "warn"
-        out.append(f"<div class=card id=t{i}><h2>{i}. {e(r['target'])} <span class={cls}>· {e(r['status'])}</span></h2>")
-        out.append(f"<p>{e(r['channel'])}{' → ' + e(r['to_email']) if r['to_email'] else ''} {link(r['send_link'], 'Open')}</p>")
-        if r["to_check"] != "none":
-            out.append("<p class=warn><b>Check before sending:</b></p><ul>" + "".join(f"<li class=warn>{e(f)}</li>" for f in r["to_check"].split(" | ")) + "</ul>")
-        if r["channel"].startswith("email") or r["channel"] in ("contact form", "none"):
-            out.append(block("Subject", r["subject"]))
-            out.append(block("Email", r["email_body"]))
-        if r["linkedin_note"] and r["channel"] in ("LinkedIn note", "none"):
-            out.append(block(f"LinkedIn note ({len(r['linkedin_note'])} chars)", r["linkedin_note"], " " + link(r["profile_link"], "profile")))
-        if r["followup_body"]:
-            out.append(block(f"Follow-up (send {r['followup_send_after']} if no reply)", r["followup_body"], " " + link(r["followup_link"], "Open")))
-        out.append("<details><summary>Why this target, and the evidence</summary><ul>")
-        out.append(f"<li>Contact: {e(r['contact_name'])}, {e(r['contact_title'])} {link(r['contact_source'] if r['contact_source'].startswith('http') else '', 'source')} (verified: {e(r['contact_verified'])})</li>")
-        out.append(f"<li>{link(r['website'], r['website'])} · {e(r['location'])}</li>")
-        out.append(f"<li>Why: {e(r['fit_reason'])} · Criteria met: {e(r['criteria_met'])}</li>")
-        out.append(f"<li>Criteria: {e(r['criteria'])}</li><li>Opening fact checked on its source page: {e(r['fact_check'])}</li>")
-        out += [f"<li>{e(f['fact'])} ({e(f['date'])}) {link(f['source_url'], 'source')}</li>" for f in fs]
-        if r["auto_fixed"]:
-            out.append("<li>Already fixed by the reviewer: " + e(r["auto_fixed"]) + "</li>")
-        out.append("</ul></details></div>")
-    return "\n".join(out)
+def _html(rows: list[dict], targets: list[dict], request: str, outdir: Path, startup: dict | None) -> str:
+    """The review app (ui/review.html) with this run's data embedded, so it works offline from file://."""
+    sender = (startup or {}).get("sender", {})
+    clean = lambda v: str(v or "").replace("PLACEHOLDER:", "").strip()  # noqa: E731
+    email = clean(sender.get("email"))
+    data = {
+        "meta": {
+            "request": request.replace("[DEMO, fictional data] ", ""),
+            "demo": request.startswith("[DEMO"),
+            "company": clean((startup or {}).get("company_name")),
+            "mode": "people" if any("found_via" in t for t in targets) else "companies",
+            "date": datetime.date.today().strftime("%b %d, %Y").replace(" 0", " "),
+            "run": outdir.resolve().name,
+            "outdir": str(outdir.resolve()),
+            "account": email if "@" in email else "",
+            "from": f"{clean(sender.get('name'))} <{email}>" if "@" in email else "",
+        },
+        "rows": [{**r, "body": t["final"]["body"], "footer": t["final"].get("footer", ""),
+                  "facts": t["facts"], "verdicts": t["fit"]["verdicts"]} for r, t in zip(rows, targets)],
+    }
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")  # can't close the <script> early
+    return _TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/", payload)
 
 
 def write_outputs(targets: list[dict], request: str, outdir: Path, startup: dict | None = None) -> list[dict]:
     outdir.mkdir(parents=True, exist_ok=True)
     sender = (startup or {}).get("sender", {})
     account = sender.get("email", "") if "PLACEHOLDER" not in sender.get("email", "") else ""
-    pairs = sorted(((_row(c, account), c["facts"]) for c in targets), key=lambda t: t[0]["_sort"], reverse=True)
+    pairs = sorted(((_row(c, account), c) for c in targets), key=lambda t: t[0]["_sort"], reverse=True)
     for r, _ in pairs:
         r.pop("_sort")
-    rows, facts = [r for r, _ in pairs], [f for _, f in pairs]
+    rows, ordered = [r for r, _ in pairs], [c for _, c in pairs]
+    facts = [c["facts"] for c in ordered]
 
     # utf-8-sig so Excel shows dashes and curly quotes correctly.
     with open(outdir / "results.csv", "w", newline="", encoding="utf-8-sig") as f:
@@ -267,5 +237,5 @@ def write_outputs(targets: list[dict], request: str, outdir: Path, startup: dict
                     _eml(r["to_email"], "Re: " + r["subject"], r["followup_body"], sender))
 
     (outdir / "results.md").write_text(_md(rows, facts, request), encoding="utf-8")
-    (outdir / "results.html").write_text(_html(rows, facts, request), encoding="utf-8")
+    (outdir / "results.html").write_text(_html(rows, ordered, request, outdir, startup), encoding="utf-8")
     return rows
