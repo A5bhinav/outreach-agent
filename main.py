@@ -1,19 +1,22 @@
 """outreach-agent: turn a portfolio support request into researched, send-ready outreach drafts.
 
 Usage:
-    python main.py "find general contractors ... US" --n 20 --config portfolio/acme.yaml
-    python main.py "find systems engineers who've deployed AMR fleets" --n 10 --config portfolio/acme.yaml
-    python main.py --opt-out someone@example.com     # never contact again, for any portfolio company
+    python main.py "find general contractors ... US" --config startup.yaml
+    python main.py "find systems engineers who've deployed AMR fleets" --n 10 --config startup.yaml
+    python main.py --mark-sent outputs/<run>          # after sending: record them in the ledger
+    python main.py --opt-out someone@example.com      # never contact again, for any portfolio company
 
 The planner decides whether the request is about meeting companies (customers, partners)
-or finding people (e.g. a hire). This tool never sends email. Each run writes
-results.csv, results.md, drafts/*.eml and run.json to its own folder under outputs/,
-and records every draft in the shared ledger so nobody is contacted twice.
+or finding people (e.g. a hire), and shows you its plan before spending on research. This
+tool never sends anything. Each run writes results.html (open it in a browser), results.md,
+results.csv, drafts/*.eml and run.json to its own folder under outputs/, updated as each
+target finishes.
 """
 import argparse
 import asyncio
 import datetime
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -26,9 +29,9 @@ from agents.contacts import find_contacts
 from agents.people import find_people
 from agents.planner import more_queries, plan
 from agents.researcher import research
-from agents.reviewer import review
-from agents.sourcer import domain, name_key, source
-from agents.writer import write
+from agents.reviewer import flag_similar, review_one
+from agents.sourcer import name_key, real_domain, source
+from agents.writer import write_one
 from output import write_outputs
 
 ROOT = Path(__file__).parent
@@ -39,7 +42,8 @@ REQUIRED_SENDER = ["name"]
 def _checkpoint(outdir: Path, state: dict) -> None:
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "run.json").write_text(
-        json.dumps({**state, "errors": llm.errors, "usage": llm.usage}, indent=2, default=str), encoding="utf-8")
+        json.dumps({**state, "errors": llm.errors, "usage": llm.usage, "usage_by_step": llm.by_step},
+                   indent=2, default=str), encoding="utf-8")
 
 
 class Seen:
@@ -51,8 +55,8 @@ class Seen:
 
     def _keys(self, c: dict) -> set[str]:
         ks = {"n:" + name_key(c["name"])}
-        if c.get("domain") and c["domain"] != "unknown":
-            ks.add("d:" + c["domain"])
+        if d := real_domain(c.get("website", "")):
+            ks.add("d:" + d)
         return ks
 
     def add(self, cs: list[dict]) -> None:
@@ -63,74 +67,152 @@ class Seen:
         return bool(self._keys(c) & self.keys) or self.ledger.skip(c)
 
 
-async def _companies(request: str, startup: dict, p: dict, n: int, seen: Seen, state: dict, outdir: Path) -> list[dict]:
-    cands = (await source(p, request, n, skip=seen))[: max(n * 2, n + 5)]  # cap research cost
+class Finisher:
+    """Per-target pipeline after selection: (contacts →) write → review, with results written as each lands.
+
+    Targets don't wait for each other, and a second search round runs while the first targets finish.
+    """
+
+    def __init__(self, request: str, startup: dict, p: dict, outdir: Path, ledger: Ledger, state: dict):
+        self.request, self.startup, self.p, self.outdir, self.ledger, self.state = request, startup, p, outdir, ledger, state
+        self.tasks: list[asyncio.Task] = []
+        self.done: list[dict] = []
+        self.expected = 0
+
+    def start(self, targets: list[dict], need_contacts: bool) -> None:
+        self.expected += len(targets)
+        self.tasks += [asyncio.create_task(self._one(t, need_contacts)) for t in targets]
+
+    async def _one(self, t: dict, need_contacts: bool) -> dict | None:
+        if need_contacts:
+            t = (await find_contacts([t], self.startup, self.p))[0]
+            if reason := self.ledger.skip_reason(t):  # a contact found now may match the ledger by email
+                llm.log(f"skip: {t['name']}: {reason}")
+                self.expected -= 1
+                return None
+        t = await write_one(t, self.startup, self.p)
+        t = await review_one(t, self.startup, self.p)
+        self.done.append(t)
+        rows = write_outputs(self.done, self.request, self.outdir, self.startup)
+        row = next(r for r in rows if r["target"] == t["name"])
+        ready = sum(r["status"] == "ready" for r in rows)
+        llm.log(f"{'✓' if row['status'] == 'ready' else '·'} {len(self.done)}/{self.expected} done, {ready} ready: "
+                f"{t['name']} ({row['channel']}: {row['status']})")
+        return t
+
+    async def finish(self) -> list[dict]:
+        for r in await asyncio.gather(*self.tasks, return_exceptions=True):
+            if isinstance(r, BaseException):
+                llm.log(f"  ! finishing a target failed: {r!r}")
+        flag_similar(self.done)
+        self.state["targets"] = self.done
+        return write_outputs(self.done, self.request, self.outdir, self.startup) if self.done else []
+
+
+def _not_excluded(targets: list[dict], seen: Seen) -> list[dict]:
+    """Research can confirm a homepage the sourcer didn't have; re-check the ledger before paying for contacts."""
+    kept = []
+    for t in targets:
+        if reason := seen.ledger.skip_reason(t):
+            llm.log(f"skip: {t['name']}: {reason}")
+        else:
+            kept.append(t)
+    return kept
+
+
+async def _companies(request: str, p: dict, n: int, seen: Seen, fin: Finisher, state: dict, outdir: Path) -> int:
+    cands = await source(p, request, n, skip=seen)
     if not cands:
         raise SystemExit(f"sourcer found 0 new candidates; errors: {llm.errors[:3] or 'none logged'}")
     seen.add(cands)
+    cap = max(math.ceil(1.5 * n) + 2, n + 3)  # best likely-fit first; the rest is a reserve for round 2
+    first, reserve = cands[:cap], cands[cap:]
     state["candidates"] = cands
     _checkpoint(outdir, state)
-    top = await research(cands, p, n)
-    if len(top) < n:  # second round from new angles
-        extra_q = await more_queries(p, request, p["queries"],
-                                     f"{len(top)} of {len(cands)} researched companies qualified; {n} wanted")
+    top = _not_excluded(await research(first, p, n), seen)
+    fin.start(top, need_contacts=True)  # writing starts now; round 2 (if any) runs alongside
+    got = len(top)
+    sites = {real_domain(c["website"]) for c in top} - {""}
+
+    async def more(cs: list[dict], want: int) -> int:
+        nonlocal sites
+        extra = [c for c in _not_excluded(await research(cs, p, want), seen)
+                 if real_domain(c["website"]) not in sites][:want]
+        sites |= {real_domain(c["website"]) for c in extra} - {""}
+        fin.start(extra, need_contacts=True)
+        return len(extra)
+
+    if got < n and reserve:
+        got += await more(reserve[: 2 * (n - got) + 2], n - got)
+    if got < n:
+        extra_q = await more_queries(p, request, p["queries"], f"{got} of {len(cands)} candidates qualified; {n} wanted")
         if extra_q:
-            more = (await source(p, request, n - len(top), queries=extra_q, skip=seen))[: max(2 * (n - len(top)), 5)]
-            seen.add(more)
-            state["candidates"] += more
+            new = await source(p, request, n - got, queries=extra_q, skip=seen)
+            seen.add(new)
+            state["candidates"] += new
             state["extra_queries"] = extra_q
-            sites = {domain(c["website"]) for c in top if c["website"].startswith("http")}
-            extra = [c for c in await research(more, p, n - len(top))
-                     if not (c["website"].startswith("http") and domain(c["website"]) in sites)]
-            top = sorted(top + extra, key=lambda c: c["fit_score"], reverse=True)[:n]
-    if top:
-        top = await find_contacts(top, startup, p)
-        # A contact found now may match the ledger by email.
-        top = [t for t in top if not seen.ledger.skip(t)]
-    return top
+            got += await more(new[: 2 * (n - got) + 2], n - got)
+    return got
 
 
-async def _people(request: str, p: dict, n: int, seen: Seen) -> list[dict]:
-    pools = (await source(p, request, n))[: max(5, n)]  # talent-pool companies; the ledger applies to people
+async def _people(request: str, p: dict, n: int, seen: Seen, fin: Finisher) -> int:
+    pools = (await source(p, request, n))[: max(5, n // 2 + 2)]  # talent-pool companies; the ledger applies to people
     if not pools:
         raise SystemExit(f"sourcer found 0 talent-pool companies; errors: {llm.errors[:3] or 'none logged'}")
     top = await find_people(pools, p, n, skip=seen.ledger.skip)
-    if len(top) < n:
-        extra_q = await more_queries(p, request, p["queries"], f"{len(top)} people found across {len(pools)} companies; {n} wanted")
+    fin.start(top, need_contacts=False)
+    got = len(top)
+    if got < n:
+        extra_q = await more_queries(p, request, p["queries"], f"{got} people found across {len(pools)} companies; {n} wanted")
         if extra_q:
             names = {name_key(c["name"]) for c in pools}
-            more = [c for c in await source(p, request, n, queries=extra_q) if name_key(c["name"]) not in names][: max(5, n)]
-            got = {t["name"].lower() for t in top}
-            extra = await find_people(more, p, n - len(top),
-                                      skip=lambda t: t["name"].lower() in got or seen.ledger.skip(t))
-            top += extra
-    return top
+            short = n - got
+            more = [c for c in await source(p, request, short, queries=extra_q) if name_key(c["name"]) not in names]
+            have = {t["name"].lower() for t in top}
+            extra = await find_people(more[: max(3, math.ceil(short / 2) + 1)], p, short,
+                                      skip=lambda t: t["name"].lower() in have or seen.ledger.skip(t))
+            fin.start(extra, need_contacts=False)
+            got += len(extra)
+    return got
 
 
-async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger, preflight: bool = True) -> list[dict]:
+def _show_plan(p: dict, n: int) -> None:
+    lines = [f"\nPlan (mode: {p['mode']}, keeping up to {n}):", "  Queries:"]
+    lines += [f"    - {q}" for q in p["queries"]]
+    lines += ["  Rubric (* = must-have):"] + [f"    {'*' if r['must_have'] else ' '} {r['criterion']}" for r in p["rubric"]]
+    lines += [f"  Disqualifiers: {'; '.join(p['disqualifiers'])}", f"  Target roles: {', '.join(p['target_titles'])}",
+              f"  Ask: {p['ask']}"]
+    heavy = (math.ceil(1.5 * n) + 2 if p["mode"] == "companies" else max(5, n // 2 + 2)) + 3 * n
+    lines.append(f"  Estimate: ~{heavy + len(p['queries']) + n} Claude calls ({heavy} on the heavy model), "
+                 f"~{4 * heavy} web searches, {max(5, n)}-{3 * max(5, n)} minutes.\n")
+    print("\n".join(lines), file=sys.stderr, flush=True)
+
+
+async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger, preflight: bool = True,
+              confirm=None) -> list[dict]:
     state: dict = {"request": request}
     try:
         if preflight:
             await llm.preflight()
+        else:
+            llm.STRICT_400 = False
         p = await plan(request, startup)
         state["plan"] = p
         _checkpoint(outdir, state)
+        if confirm and not confirm(p):
+            raise SystemExit("stopped after planning; nothing else was spent")
 
         seen = Seen(ledger)
+        fin = Finisher(request, startup, p, outdir, ledger, state)
         if p["mode"] == "people":
-            top = await _people(request, p, n, seen)
+            await _people(request, p, n, seen, fin)
         else:
-            top = await _companies(request, startup, p, n, seen, state, outdir)
-        if not top:
+            await _companies(request, p, n, seen, fin, state, outdir)
+        rows = await fin.finish()
+        if not rows:
             raise SystemExit("no usable targets after research (none had fresh sourced facts and met the must-haves)")
-        state["targets"] = top
-        _checkpoint(outdir, state)
-
-        top = await write(top, startup, p)
-        top = await review(top, startup, p)
-        state["targets"] = top
-        rows = write_outputs(top, request, outdir, startup)
-        ledger.record(top)
+        ready = {r["target"] for r in rows if r["status"] == "ready"}
+        ledger.record([t for t in fin.done if t["name"] in ready], run=str(outdir.resolve()))
         return rows
     finally:
         _checkpoint(outdir, state)
@@ -157,16 +239,34 @@ def _load_config(path: str) -> dict:
     return cfg
 
 
+def _confirm(n: int, yes: bool, plan_only: bool):
+    def ask(_p: dict) -> bool:
+        _show_plan(_p, n)
+        if plan_only:
+            return False
+        if yes or not sys.stdin.isatty():
+            return True
+        return input("Proceed? [Y/n] ").strip().lower() in ("", "y", "yes")
+    return ask
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("request", nargs="?", help="who you want to meet or find, in plain English")
-    ap.add_argument("--n", type=_pos_int, default=20, help="number of targets to keep (default 20)")
+    ap.add_argument("--n", type=_pos_int, default=5, help="number of targets to keep (default 5)")
     ap.add_argument("--config", default="startup.yaml", help="portfolio company profile (YAML)")
     ap.add_argument("--out", default=None, help="output folder (default outputs/<timestamp>)")
     ap.add_argument("--ledger", default=str(ROOT / "ledger.csv"), help="shared contact ledger (default ledger.csv)")
     ap.add_argument("--opt-out", metavar="EMAIL_OR_DOMAIN", help="record an opt-out in the ledger and exit")
-    ap.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
-    ap.add_argument("--concurrency", type=_pos_int, default=5)
+    ap.add_argument("--mark-sent", metavar="RUN_DIR", help="mark a run's ready drafts as sent in the ledger and exit")
+    ap.add_argument("--only", default="", help="with --mark-sent: comma-separated target names (default all)")
+    ap.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"],
+                    help="effort for research and people steps (others use fixed, cheaper levels)")
+    ap.add_argument("--concurrency", type=_pos_int, default=8)
+    ap.add_argument("--yes", "-y", action="store_true", help="don't ask for confirmation after the plan")
+    ap.add_argument("--plan-only", action="store_true", help="show the plan and stop")
+    ap.add_argument("--allow-placeholders", action="store_true",
+                    help="run even though the config has PLACEHOLDER values (every email will be blocked)")
     ap.add_argument("--skip-preflight", action="store_true", help="skip the startup web-search check")
     args = ap.parse_args()
 
@@ -174,30 +274,37 @@ def main() -> None:
         Ledger(Path(args.ledger), "").opt_out(args.opt_out)
         print(f"recorded opt-out for {args.opt_out} in {args.ledger}")
         return
+    if args.mark_sent:
+        only = {s.strip() for s in args.only.split(",") if s.strip()} or None
+        n = Ledger(Path(args.ledger), "").mark_sent(str(Path(args.mark_sent).resolve()), only)
+        print(f"marked {n} draft(s) from {args.mark_sent} as sent")
+        return
     if not args.request:
         ap.error("a request is required")
 
     startup = _load_config(args.config)
+    problems = []
     if "PLACEHOLDER" in yaml.safe_dump(startup):
-        llm.log("warning: config still has PLACEHOLDER values; emails using them will be marked not ready to send")
+        problems.append("it still has PLACEHOLDER values")
     if missing := missing_legal(startup):
-        llm.log(f"warning: config has no {', '.join('sender.' + m for m in missing)}; every email will be blocked "
-                "until the legal footer is complete")
+        problems.append(f"the email footer needs {', '.join(missing)}")
+    if problems and not (args.allow_placeholders or args.plan_only):
+        sys.exit(f"fix {args.config} first: {'; '.join(problems)}. Every email would be blocked, so nothing was "
+                 "spent. (Use --plan-only to preview, or --allow-placeholders for a dry run.)")
     llm.EFFORT, llm.CONCURRENCY = args.effort, args.concurrency
     outdir = Path(args.out) if args.out else ROOT / "outputs" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     ledger = Ledger(Path(args.ledger), startup["company_name"])
 
     try:
-        rows = asyncio.run(run(args.request, startup, args.n, outdir, ledger, preflight=not args.skip_preflight))
+        rows = asyncio.run(run(args.request, startup, args.n, outdir, ledger, preflight=not args.skip_preflight,
+                               confirm=_confirm(args.n, args.yes, args.plan_only)))
     except anthropic.AuthenticationError:
         sys.exit("no valid Anthropic credentials (set ANTHROPIC_API_KEY or run `ant auth login`)")
-    except llm.FATAL as e:
+    except (*llm.FATAL, anthropic.BadRequestError) as e:
         sys.exit(f"stopping: API configuration error ({e.status_code}): {e.message}")
-    u = llm.usage
-    ready = sum(r["ready_to_send"] == "yes" for r in rows)
-    llm.log(f"done: {len(rows)} drafts ({ready} ready to send) -> {outdir}/results.md, results.csv, drafts/")
-    llm.log(f"usage: {u['calls']} calls, {u['input_tokens']:,} in / {u['output_tokens']:,} out tokens, "
-            f"{u['web_searches']} web searches, {u['web_fetches']} web fetches")
+    ready = sum(r["status"] == "ready" for r in rows)
+    llm.log(f"done: {len(rows)} targets, {ready} ready to send -> open {outdir / 'results.html'}")
+    llm.log(llm.summary())
 
 
 if __name__ == "__main__":

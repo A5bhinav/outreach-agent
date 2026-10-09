@@ -15,6 +15,16 @@ icp_notes: >
   large industrial, warehouse or distribution-center builds. Signs of a good fit:
   recent facility expansion, prefab/offsite construction, a VDC or innovation team,
   hiring for logistics or equipment roles.
+# Optional, but they make intros far more convincing (the writer only uses what's here):
+# founder_bio: "ex-Amazon Robotics deployment lead; shipped 2,000+ AMRs"
+# stage_and_backers: "Seed, $6M, led by Your Fund"
+# investor_note: "we backed them because their robots run in live 3PL sites, not just pilots"
+# offer: "a free 4-week pilot in one yard"
+# roles:                      # for hiring requests
+#   - title: "Senior Systems Engineer, Field Deployments"
+#     location: "Remote (US) or Boston"
+#     comp: "$180-220k + equity"
+#     why_interesting: "owns fleet bring-up end to end at customer sites"
 proof_points:
   - "PLACEHOLDER: robots running in live warehouse deployments today"
   - "PLACEHOLDER: replace with a real metric, e.g. hours of manual hauling saved per week"

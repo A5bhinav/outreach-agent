@@ -6,7 +6,7 @@ profiles are only ever shown as links; GitHub is evidence of work, never an emai
 """
 import asyncio
 
-from .contacts import email_allowed, verify_contact
+from .contacts import email_allowed, email_kind, verify_contact
 from .evidence import fresh, judge, numbered
 from .llm import log, run_structured
 from .schema import ASSESSMENTS, FACTS, STR, arr, obj
@@ -53,7 +53,8 @@ async def _one(c: dict, p: dict, per_company: int) -> list[dict]:
         f"Signals worth finding: {p['research_signals']}\nDisqualifiers: {p['disqualifiers']}\n\n"
         f"Return up to {per_company} people."
     )
-    out = await run_structured(SYSTEM, prompt, SCHEMA, web_searches=5, web_fetch=True, label=f"people[{c['name']}]")
+    out = await run_structured(SYSTEM, prompt, SCHEMA, web_searches=4, web_fetches=3,
+                               max_tokens=16000, label=f"people[{c['name']}]")
     if out is None:
         log(f"  ! people: call failed for {c['name']}")
         return []
@@ -68,10 +69,12 @@ async def _one(c: dict, p: dict, per_company: int) -> list[dict]:
         contact = {
             "name": person["name"], "title": person["current_title"], "source_url": person["profile_url"],
             "email": person["email"] or "unknown", "email_source_url": person["email_source_url"] or "unknown",
-            "suggested_title": person["current_title"], "verified": "no",
+            "suggested_title": person["current_title"], "verified": "no", "contact_form_url": "unknown",
+            "email_domain_match": True,
         }
         if not email_allowed(contact["email"], contact["email_source_url"]):
             contact.update(email="unknown", email_source_url="unknown")
+        contact["email_kind"] = email_kind(contact["email"], contact["name"])
         targets.append({
             "name": person["name"],
             "company": person["current_company"],

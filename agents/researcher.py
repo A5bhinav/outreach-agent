@@ -4,7 +4,7 @@ import asyncio
 from .evidence import fresh, judge, numbered
 from .llm import log, run_structured
 from .schema import ASSESSMENTS, FACTS, STR, obj
-from .sourcer import domain
+from .sourcer import real_domain
 
 SCHEMA = obj(
     website=STR,
@@ -33,43 +33,49 @@ def _dq(c: dict) -> bool:
     return c.get("disqualified", "no").strip().lower() not in ("", "no", "none")
 
 
-async def _one(c: dict, p: dict, i: int, total: int) -> dict:
+async def _one(c: dict, p: dict, progress: list[int], total: int) -> dict:
     prompt = (
         f"Company: {c['name']}\nWebsite: {c['website']}\nFound via: {', '.join(c['source_urls'])}\n"
         f"Known location: {c.get('location', 'unknown')}; size hint: {c.get('size_hint', 'unknown')}\n\n"
         f"Rubric:\n{numbered(p['rubric'])}\nResearch signals: {p['research_signals']}\n"
         f"Disqualifiers: {p['disqualifiers']}\n"
     )
-    out = await run_structured(SYSTEM, prompt, SCHEMA, web_searches=4, web_fetch=True, label=f"research[{c['name']}]")
+    out = await run_structured(SYSTEM, prompt, SCHEMA, web_searches=3, web_fetches=3, max_tokens=16000,
+                               label=f"research[{c['name']}]")
+    progress[0] += 1
     if not out:
         return {**c, "facts": [], "fit": judge([], p["rubric"]), "fit_score": 0,
                 "fit_reason": "research failed", "disqualified": "no"}
     out["facts"] = fresh(out["facts"])  # sourced and not stale
     fit = judge(out.pop("assessments"), p["rubric"])
-    if not out["website"].startswith("http"):
+    if not real_domain(out["website"]):
         out["website"] = c["website"]
     merged = {**c, **out, "fit": fit, "fit_score": fit["fit_score"], "source_urls": list(c["source_urls"])}
+    if d := real_domain(merged["website"]):
+        merged["domain"] = d  # the ledger and dedupe key on it
     for f in out["facts"]:
         if f["source_url"] not in merged["source_urls"]:
             merged["source_urls"].append(f["source_url"])
-    log(f"researcher: ({i}/{total}) {c['name']}: {fit['met']}/{fit['total']} criteria, "
-        f"must-haves {'met' if fit['must_haves_met'] else 'NOT met'}, {len(out['facts'])} fresh facts"
+    must = "met" if fit["must_haves_met"] else "1 unclear" if fit["passes"] else "NOT met"
+    log(f"researcher: ({progress[0]}/{total}) {c['name']}: {fit['met']}/{fit['total']} criteria, "
+        f"must-haves {must}, {len(out['facts'])} fresh facts"
         + (f", disqualified: {out['disqualified']}" if _dq(out) else ""))
     return merged
 
 
 async def research(cands: list[dict], p: dict, n: int) -> list[dict]:
-    """Research every candidate; return those that pass: fresh sourced facts, every must-have, no disqualifier."""
+    """Research every candidate; return those that pass: fresh sourced facts, must-haves (at most one unclear), no disqualifier."""
     log(f"researcher: researching {len(cands)} candidates")
     total = len(cands)
-    done = await asyncio.gather(*(_one(c, p, i + 1, total) for i, c in enumerate(cands)))
-    usable = [c for c in done if c["facts"] and not _dq(c) and c["fit"]["must_haves_met"]]
+    progress = [0]
+    done = await asyncio.gather(*(_one(c, p, progress, total) for c in cands))
+    usable = [c for c in done if c["facts"] and not _dq(c) and c["fit"]["passes"]]
     # Several unconfirmed-homepage entries can resolve to the same site; keep the best.
     seen, deduped = set(), []
     for c in sorted(usable, key=lambda c: c["fit_score"], reverse=True):
-        d = domain(c["website"]) if c["website"].startswith("http") else c["name"].lower()
+        d = real_domain(c["website"]) or c["name"].lower()
         if d not in seen:
             seen.add(d)
             deduped.append(c)
-    log(f"researcher: {len(deduped)} of {total} pass (fresh sourced facts, all must-haves, not disqualified)")
+    log(f"researcher: {len(deduped)} of {total} pass (fresh sourced facts, must-haves met, not disqualified)")
     return deduped[:n]

@@ -16,21 +16,23 @@ import anthropic
 MODELS = {"heavy": "claude-opus-5-5", "light": "claude-sonnet-5"}
 # Models that take server-side refusal fallbacks.
 FALLBACK_MODELS = {"claude-opus-5-5", "claude-opus-5"}
-EFFORT = "high"  # overridden by --effort in main.py
-CONCURRENCY = 5
+EFFORT = "high"  # overridden by --effort in main.py; steps may pass their own
+CONCURRENCY = 8  # heavy-model calls in flight; light calls get twice as many (separate rate-limit buckets)
 DIRECT_SEARCH = False  # set by preflight() if the org can't use dynamic-filtering search
+# Before preflight passes, any 400 means the setup is broken; after, a 400 is specific to one call.
+STRICT_400 = True
 TODAY = datetime.date.today().isoformat()
 
 _client: anthropic.AsyncAnthropic | None = None
-_sem: asyncio.Semaphore | None = None
+_sems: dict[str, asyncio.Semaphore] = {}
 _t0 = time.time()
 usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0,
          "web_searches": 0, "web_fetches": 0, "calls": 0}
+by_step: dict[str, dict] = {}
 errors: list[str] = []
 
-# Errors that will hit every call (bad key, web search not enabled, bad params): stop the run.
-FATAL = (anthropic.BadRequestError, anthropic.AuthenticationError,
-         anthropic.PermissionDeniedError, anthropic.NotFoundError)
+# Errors that will hit every call (bad key, no access, unknown model): stop the run.
+FATAL = (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.NotFoundError)
 
 
 def log(msg: str) -> None:
@@ -40,28 +42,36 @@ def log(msg: str) -> None:
 
 
 def _get():
-    global _client, _sem
+    global _client
     if _client is None:
-        _client = anthropic.AsyncAnthropic(max_retries=3, timeout=anthropic.Timeout(900, connect=15))
-        _sem = asyncio.Semaphore(CONCURRENCY)
-    return _client, _sem
+        _client = anthropic.AsyncAnthropic(max_retries=5, timeout=anthropic.Timeout(900, connect=15))
+        _sems["heavy"] = asyncio.Semaphore(CONCURRENCY)
+        _sems["light"] = asyncio.Semaphore(CONCURRENCY * 2)
+    return _client
 
 
-def _web_tools(max_uses: int, fetch: bool) -> list[dict]:
+def _web_tools(searches: int, fetches: int) -> list[dict]:
     extra = {"allowed_callers": ["direct"]} if DIRECT_SEARCH else {}
-    tools = [{"type": "web_search_20260209", "name": "web_search", "max_uses": max_uses, **extra}]
-    if fetch:
-        tools.append({"type": "web_fetch_20260209", "name": "web_fetch", "max_uses": max_uses, **extra})
+    tools = [{"type": "web_search_20260209", "name": "web_search", "max_uses": searches, **extra}]
+    if fetches:
+        tools.append({"type": "web_fetch_20260209", "name": "web_fetch", "max_uses": fetches, **extra})
     return tools
 
 
 def _track(resp, label: str) -> None:
+    step = label.split("[")[0] or "other"
+    s = by_step.setdefault(step, {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "web_searches": 0})
     usage["calls"] += 1
+    s["calls"] += 1
     for k in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"):
-        usage[k] += getattr(resp.usage, k, 0) or 0
+        v = getattr(resp.usage, k, 0) or 0
+        usage[k] += v
+        if k in s:
+            s[k] += v
     stu = getattr(resp.usage, "server_tool_use", None)
     if stu:
         usage["web_searches"] += getattr(stu, "web_search_requests", 0) or 0
+        s["web_searches"] += getattr(stu, "web_search_requests", 0) or 0
         usage["web_fetches"] += getattr(stu, "web_fetch_requests", 0) or 0
     # Server-tool failures come back as result blocks inside a 200, not as exceptions.
     for b in resp.content:
@@ -78,8 +88,18 @@ def _unrun_searches(content: list) -> set[str]:
     return called - answered
 
 
-async def _create(client, model: str, **params):
-    kw = dict(model=model, max_tokens=32000, thinking={"type": "adaptive"}, output_config={"effort": EFFORT}, **params)
+def _premature(answer: dict) -> bool:
+    """A submit whose list fields are all empty, sent alongside searches that never ran, skipped its own research."""
+    lists = [v for v in answer.values() if isinstance(v, list)]
+    return bool(lists) and not any(lists)
+
+
+async def _create(client, model: str, effort: str, max_tokens: int, cache: bool, **params):
+    kw = dict(model=model, max_tokens=max_tokens, thinking={"type": "adaptive"}, output_config={"effort": effort}, **params)
+    if cache:
+        # Web-tool loops resend large search results; with caching on, the server also caches after
+        # each tool result, so later iterations read at the cache rate.
+        kw["cache_control"] = {"type": "ephemeral"}
     if model in FALLBACK_MODELS:
         kw.update(betas=["server-side-fallback-2026-07-01"], fallbacks="default")
     async with client.beta.messages.stream(**kw) as stream:
@@ -92,17 +112,18 @@ async def run_structured(
     schema: dict,
     *,
     web_searches: int = 0,
-    web_fetch: bool = False,
+    web_fetches: int = 0,
     model: str = "heavy",
+    effort: str | None = None,
+    max_tokens: int = 32000,
     label: str = "",
 ) -> dict | None:
     """Run one agent step and return the `submit` tool input (or None on failure).
 
-    Raises on configuration errors (400/401/403/404) so a broken setup fails fast
-    instead of producing an empty run. History is append-only: a bad turn is
-    discarded whole and retried, never edited.
+    Raises on configuration errors so a broken setup fails fast instead of producing an empty
+    run. History is append-only: a turn that can't be sent back is discarded whole, never edited.
     """
-    client, sem = _get()
+    client = _get()
     submit = {
         "name": "submit",
         "description": "Submit your final answer. Call this exactly once, when you are done, in a turn of its own.",
@@ -111,17 +132,23 @@ async def run_structured(
     }
     tools = [submit]
     if web_searches:
-        tools = _web_tools(web_searches, web_fetch) + tools
+        tools = _web_tools(web_searches, web_fetches) + tools
 
     system = f"{system}\n\nToday's date is {TODAY}."
     messages: list[dict] = [{"role": "user", "content": prompt}]
-    async with sem:
-        for _ in range(6):
+    async with _sems[model]:
+        for _ in range(8):
             try:
-                resp = await _create(client, MODELS[model], system=system, tools=tools, messages=messages)
+                resp = await _create(client, MODELS[model], effort or EFFORT, max_tokens, bool(web_searches),
+                                     system=system, tools=tools, messages=messages)
             except FATAL as e:
                 log(f"  ! {label}: API error {e.status_code}: {e.message}")
                 raise
+            except anthropic.BadRequestError as e:
+                log(f"  ! {label}: API error 400: {e.message}")
+                if STRICT_400:
+                    raise
+                return None
             except anthropic.APIStatusError as e:
                 log(f"  ! {label}: API error {e.status_code}: {e.message}")
                 return None
@@ -134,17 +161,19 @@ async def run_structured(
             if resp.stop_reason == "refusal":
                 log(f"  ! {label}: refused")
                 return None
-            if resp.stop_reason == "pause_turn":
-                messages.append({"role": "assistant", "content": resp.content})
-                continue  # server-side tool loop paused; resend to resume
 
             truncated = resp.stop_reason == "max_tokens"
             unrun = _unrun_searches(resp.content)
             subs = [b for b in resp.content if b.type == "tool_use" and b.name == "submit"]
-            if subs and not truncated and not unrun and set(schema["required"]) <= set(subs[0].input):
-                return subs[0].input
+            if subs and not truncated and set(schema["required"]) <= set(subs[0].input):
+                if not (unrun and _premature(subs[0].input)):
+                    return subs[0].input
 
-            # The turn can't be sent back as-is (a cut-off answer, a submit without a result, or a
+            if resp.stop_reason == "pause_turn" and not subs:
+                messages.append({"role": "assistant", "content": resp.content})
+                continue  # server-side tool loop paused; resend to resume
+
+            # The turn can't be sent back as-is (a cut-off answer, a submit without a tool_result, or a
             # search that never ran), so discard it and ask again.
             if truncated:
                 nudge = "Your last answer was cut off. Be more concise and call the submit tool with your complete answer."
@@ -164,24 +193,32 @@ async def preflight() -> None:
 
     If the org refuses dynamic-filtering search, switch every later call to direct search.
     """
-    global DIRECT_SEARCH, EFFORT
-    effort, EFFORT = EFFORT, "low"
+    global DIRECT_SEARCH, STRICT_400
     schema = {"type": "object", "properties": {"ok": {"type": "boolean"}}, "required": ["ok"], "additionalProperties": False}
     res = None
-    try:
-        for attempt in range(2):
-            try:
-                res = await run_structured("Run one web search, then submit ok=true.", "Search for: anthropic",
-                                     schema, web_searches=1, model="light", label="preflight")
-                break
-            except anthropic.BadRequestError as e:
-                if attempt == 0 and not DIRECT_SEARCH and "allowed_callers" in str(e.message):
-                    log("preflight: dynamic-filtering search unavailable; using direct search")
-                    DIRECT_SEARCH = True
-                    continue
-                raise
-    finally:
-        EFFORT = effort
+    for attempt in range(2):
+        try:
+            res = await run_structured("Run one web search, then submit ok=true.", "Search for: anthropic", schema,
+                                       web_searches=1, model="light", effort="low", max_tokens=4000, label="preflight")
+            break
+        except anthropic.BadRequestError as e:
+            if attempt == 0 and not DIRECT_SEARCH and "allowed_callers" in str(e.message):
+                log("preflight: dynamic-filtering search unavailable; using direct search")
+                DIRECT_SEARCH = True
+                continue
+            raise
     if res is None:
         raise SystemExit(f"preflight failed: {errors[-1] if errors else 'no answer'}")
+    STRICT_400 = False
     log("preflight: web search OK")
+
+
+def summary() -> str:
+    u = usage
+    lines = [f"usage: {u['calls']} calls, {u['input_tokens']:,} in ({u['cache_read_input_tokens']:,} cache reads, "
+             f"{u['cache_creation_input_tokens']:,} cache writes) / {u['output_tokens']:,} out tokens, "
+             f"{u['web_searches']} web searches, {u['web_fetches']} web fetches"]
+    for step, s in sorted(by_step.items(), key=lambda kv: -kv[1]["input_tokens"]):
+        lines.append(f"  {step:<10} {s['calls']:>4} calls {s['input_tokens']:>12,} in {s['output_tokens']:>10,} out "
+                     f"{s['web_searches']:>4} searches")
+    return "\n".join(lines)
