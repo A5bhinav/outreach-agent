@@ -26,10 +26,9 @@ fi
 
 cat <<'NEXT'
 
-Next, for a real run:
-  1. export ANTHROPIC_API_KEY=sk-ant-...         (web search must be enabled for the org)
-  2. fill in sender.yaml                          (your name, firm, email, firm postal address)
-  3. .venv/bin/python main.py --new-company "Company Name"   then fill in portfolio/<company>.yaml
-  4. .venv/bin/python main.py "who you want to meet" --company <company> --plan-only
-  5. drop --plan-only to run it; open outputs/<run>/results.html
+Start the app:
+  .venv/bin/python main.py --serve
+
+It opens in your browser. Settings takes your details and API key, Portfolio holds one
+profile per company, and New request runs it (try it on demo data first, no key needed).
 NEXT

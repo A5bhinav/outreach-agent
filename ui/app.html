@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outreach</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b57d0'/%3E%3Cpath d='M7 25l20-9L7 7v7l14 2-14 2z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Same Gmail (Material 3) tokens as the review inbox (ui/review.html). */
+:root {
+  --bg: #f6f8fc; --surface: #ffffff; --read: #f2f6fc; --line: #e0e3e7; --line-2: #eceff1;
+  --ink: #1f1f1f; --ink-2: #444746; --ink-3: #5e5e5e; --ink-4: #747775;
+  --primary: #0b57d0; --primary-ink: #ffffff; --nav-sel: #d3e3fd; --nav-sel-ink: #001d35; --fab: #c2e7ff; --fab-ink: #001d35;
+  --field: #f0f4f9; --draft: #d93025;
+  --warn-bg: #fef7e0; --warn-ink: #7a4f01; --bad-bg: #fce8e6; --bad-ink: #a50e0e; --ok-bg: #e6f4ea; --ok-ink: #0d652d;
+  --row-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+  --pop-shadow: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px rgba(60,64,67,.3);
+  --sans: "Google Sans Text", "Google Sans", Roboto, Arial, sans-serif; --display: "Google Sans", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111111; --surface: #1f1f1f; --read: #262626; --line: #3c4043; --line-2: #2e3134;
+  --ink: #e3e3e3; --ink-2: #c4c7c5; --ink-3: #a8abaf; --ink-4: #8e918f;
+  --primary: #a8c7fa; --primary-ink: #062e6f; --nav-sel: #004a77; --nav-sel-ink: #c2e7ff; --fab: #004a77; --fab-ink: #c2e7ff;
+  --field: #28292a; --draft: #f28b82;
+  --warn-bg: #3d2f0a; --warn-ink: #fdd663; --bad-bg: #3c1f1d; --bad-ink: #f6aea9; --ok-bg: #0f3d22; --ok-ink: #81c995;
+  --row-shadow: inset 0 0 0 1px #3c4043; --pop-shadow: 0 4px 12px rgba(0,0,0,.6);
+} }
+:root[data-theme="dark"] {
+  --bg: #111111; --surface: #1f1f1f; --read: #262626; --line: #3c4043; --line-2: #2e3134;
+  --ink: #e3e3e3; --ink-2: #c4c7c5; --ink-3: #a8abaf; --ink-4: #8e918f;
+  --primary: #a8c7fa; --primary-ink: #062e6f; --nav-sel: #004a77; --nav-sel-ink: #c2e7ff; --fab: #004a77; --fab-ink: #c2e7ff;
+  --field: #28292a; --draft: #f28b82;
+  --warn-bg: #3d2f0a; --warn-ink: #fdd663; --bad-bg: #3c1f1d; --bad-ink: #f6aea9; --ok-bg: #0f3d22; --ok-ink: #81c995;
+  --row-shadow: inset 0 0 0 1px #3c4043; --pop-shadow: 0 4px 12px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/20px var(--sans); }
+a { color: var(--primary); text-decoration: none; } a:hover { text-decoration: underline; }
+button, input, textarea, select { font: inherit; color: inherit; }
+svg.i { width: 20px; height: 20px; fill: currentColor; flex: none; }
+.ib { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; display: inline-grid; place-items: center; cursor: pointer; color: var(--ink-2); flex: none; }
+.ib:hover { background: rgba(68,71,70,.08); }
+
+header { height: 64px; display: flex; align-items: center; padding: 8px 8px 8px 16px; gap: 4px; }
+.logo { display: flex; align-items: center; gap: 8px; width: 222px; padding-left: 4px; color: inherit; }
+.logo:hover { text-decoration: none; }
+.logo .mk { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4285f4, #0b57d0); display: grid; place-items: center; }
+.logo .mk svg { width: 18px; height: 18px; fill: #fff; }
+.logo span { font: 22px/24px var(--display); color: var(--ink-2); }
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 4px; padding-right: 8px; }
+.status-chip { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 16px; background: var(--nav-sel); color: var(--nav-sel-ink); text-decoration: none !important; }
+.status-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+
+.shell { display: flex; min-height: calc(100vh - 64px); }
+nav { width: 256px; flex: none; padding-right: 16px; }
+.fab { display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 24px 0 16px; margin: 8px 0 16px 8px; border: 0; border-radius: 16px; background: var(--fab); color: var(--fab-ink); font: 500 14px var(--display); cursor: pointer; box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); text-decoration: none !important; }
+.fab:hover { box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15); }
+.nv { display: flex; align-items: center; height: 32px; padding: 0 12px 0 26px; border-radius: 0 16px 16px 0; color: var(--ink); gap: 18px; text-decoration: none !important; }
+.nv:hover { background: rgba(31,31,31,.06); }
+.nv[aria-current="page"] { background: var(--nav-sel); color: var(--nav-sel-ink); font-weight: 700; }
+.nv .lbl { flex: 1; } .nv .cnt { font-size: 12px; }
+.nv .warn { width: 8px; height: 8px; border-radius: 50%; background: var(--draft); }
+.main { flex: 1; min-width: 0; background: var(--surface); border-radius: 16px; margin: 0 16px 16px 0; padding: 28px 40px 48px; }
+.page { max-width: 880px; }
+h1 { font: 400 28px/36px var(--display); margin: 0 0 4px; }
+.sub { color: var(--ink-3); margin: 0 0 24px; }
+h2 { font: 500 16px/24px var(--display); margin: 28px 0 12px; }
+
+/* form controls */
+label.f { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); margin: 16px 0 6px; }
+.help { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+input.t, textarea.t, select.t { width: 100%; border: 1px solid transparent; background: var(--field); border-radius: 12px; padding: 12px 14px; outline: none; }
+input.t:focus, textarea.t:focus, select.t:focus { background: var(--surface); border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+textarea.t { resize: vertical; min-height: 84px; line-height: 20px; }
+textarea.big { min-height: 120px; font-size: 16px; line-height: 24px; padding: 16px; }
+.ph-warn { border-color: #f9ab00 !important; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.btn { height: 40px; padding: 0 24px; border-radius: 20px; border: 1px solid var(--ink-4); background: transparent; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--primary); cursor: pointer; text-decoration: none !important; white-space: nowrap; }
+.btn:hover { background: rgba(11,87,208,.06); }
+.btn.fill { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.btn.fill:hover { box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); filter: brightness(1.05); }
+.btn.tonal { background: var(--fab); border-color: transparent; color: var(--fab-ink); }
+.btn.danger { color: var(--draft); border-color: var(--line); }
+.btn[disabled] { opacity: .4; pointer-events: none; }
+.btn svg.i { width: 18px; height: 18px; }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 24px; flex-wrap: wrap; }
+.actions .grow { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: var(--ink-2); }
+.chip:hover { background: var(--read); }
+.chip[aria-pressed="true"] { background: var(--nav-sel); border-color: transparent; color: var(--nav-sel-ink); }
+.chip svg.i { width: 18px; height: 18px; }
+.chip .tiny { width: 8px; height: 8px; border-radius: 50%; background: var(--draft); }
+.seg { display: inline-flex; border: 1px solid var(--ink-4); border-radius: 20px; overflow: hidden; }
+.seg button { height: 40px; min-width: 64px; padding: 0 16px; border: 0; background: transparent; cursor: pointer; font-weight: 500; color: var(--ink-2); }
+.seg button + button { border-left: 1px solid var(--ink-4); }
+.seg button[aria-pressed="true"] { background: var(--nav-sel); color: var(--nav-sel-ink); }
+.switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+.switch input { appearance: none; width: 52px; height: 32px; border-radius: 16px; background: var(--line); border: 2px solid var(--ink-4); position: relative; cursor: pointer; margin: 0; flex: none; }
+.switch input::after { content: ""; position: absolute; top: 6px; left: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-4); transition: .15s; }
+.switch input:checked { background: var(--primary); border-color: var(--primary); }
+.switch input:checked::after { left: 22px; top: 2px; width: 24px; height: 24px; background: var(--primary-ink); }
+.examples { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.examples button { text-align: left; border: 0; background: none; color: var(--ink-3); cursor: pointer; padding: 4px 0; font-size: 13px; }
+.examples button:hover { color: var(--primary); }
+.examples button b { color: var(--ink-2); font-weight: 500; }
+
+/* banners & cards */
+.banner { padding: 12px 16px; border-radius: 12px; display: flex; gap: 12px; margin: 16px 0; }
+.banner.warn { background: var(--warn-bg); color: var(--warn-ink); } .banner.bad { background: var(--bad-bg); color: var(--bad-ink); } .banner.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.banner ul { margin: 4px 0 0; padding-left: 18px; } .banner a { color: inherit; text-decoration: underline; }
+.card { border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; margin-top: 20px; }
+.card h3 { margin: 0 0 4px; font: 500 18px var(--display); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lb { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; background: var(--line-2); color: var(--ink-2); }
+.lb.blue { background: var(--nav-sel); color: var(--nav-sel-ink); } .lb.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.lb.bad { background: var(--bad-bg); color: var(--bad-ink); } .lb.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; margin-top: 12px; }
+.plan-grid h4 { margin: 12px 0 6px; font: 500 12px var(--sans); text-transform: uppercase; letter-spacing: .6px; color: var(--ink-3); }
+.plan-grid ul { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.plan-grid li { display: flex; gap: 8px; } .plan-grid li svg.i { width: 18px; height: 18px; color: var(--ink-4); margin-top: 1px; }
+.plan-grid li.must svg.i { color: #f4b400; }
+.est { display: flex; gap: 28px; flex-wrap: wrap; padding: 14px 0 0; margin-top: 16px; border-top: 1px solid var(--line-2); }
+.est div { display: flex; flex-direction: column; } .est b { font: 400 22px var(--display); } .est span { font-size: 12px; color: var(--ink-3); }
+
+/* lists */
+.rows { border-top: 1px solid var(--line-2); margin: 0 -40px; }
+.r { display: flex; align-items: center; gap: 16px; padding: 0 40px; min-height: 56px; box-shadow: inset 0 -1px 0 0 var(--line-2); cursor: pointer; color: inherit; text-decoration: none !important; position: relative; }
+.r:hover { box-shadow: var(--row-shadow); z-index: 1; }
+.r .main-col { flex: 1; min-width: 0; }
+.r .t1 { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r .t2 { color: var(--ink-3); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r .side { font-size: 12px; color: var(--ink-3); white-space: nowrap; text-align: right; }
+.av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 500 15px var(--display); flex: none; }
+.empty { padding: 56px 24px; text-align: center; color: var(--ink-3); }
+.empty b { display: block; font: 400 22px var(--display); color: var(--ink-2); margin-bottom: 6px; }
+
+/* run progress */
+.steps { display: flex; gap: 0; margin: 24px 0 8px; }
+.step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; font-size: 12px; color: var(--ink-3); text-align: center; }
+.step::before { content: ""; position: absolute; top: 13px; left: -50%; right: 50%; height: 2px; background: var(--line); }
+.step:first-child::before { display: none; }
+.step .b { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 2px solid var(--line); z-index: 1; }
+.step.done .b { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.step.done::before, .step.now::before { background: var(--primary); }
+.step.now .b { border-color: var(--primary); } .step.now .b::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); animation: pulse 1.2s infinite; }
+.step.now { color: var(--ink); font-weight: 500; }
+.step .b svg.i { width: 16px; height: 16px; }
+.counts { display: flex; gap: 32px; margin: 20px 0 4px; }
+.counts div { display: flex; flex-direction: column; } .counts b { font: 400 28px var(--display); } .counts span { font-size: 12px; color: var(--ink-3); }
+details.log { margin-top: 24px; }
+details.log summary { cursor: pointer; color: var(--ink-3); font-size: 13px; }
+details.log pre { background: var(--read); border-radius: 12px; padding: 12px 16px; max-height: 320px; overflow: auto; font: 12px/18px ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 8px 0 0; color: var(--ink-2); }
+
+.snack { position: fixed; left: 24px; bottom: 24px; background: #303030; color: #f2f2f2; padding: 14px 16px; border-radius: 4px; box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px rgba(0,0,0,.14); transform: translateY(80px); opacity: 0; transition: .2s; z-index: 30; }
+.snack.show { transform: none; opacity: 1; }
+.list-editor .li { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.list-editor .li input { flex: 1; }
+.role { display: grid; grid-template-columns: 1.4fr 1fr 1fr 40px; gap: 8px; margin-bottom: 8px; }
+.role textarea { grid-column: 1 / 4; min-height: 44px; }
+.spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 860px) {
+  nav { display: none; } body.drawer nav { display: block; position: fixed; z-index: 15; top: 0; bottom: 0; left: 0; background: var(--bg); padding-top: 8px; box-shadow: var(--pop-shadow); }
+  .logo { width: auto; } .main { margin: 0 8px 8px; padding: 20px 16px 40px; }
+  .rows { margin: 0 -16px; } .r { padding: 0 16px; }
+  .row2, .plan-grid { grid-template-columns: 1fr; }
+  .steps .step span { display: none; }
+  .role { grid-template-columns: 1fr 40px; } .role input:not(:first-child) { grid-column: 1; } .role textarea { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+<header>
+  <button class="ib" id="menu" aria-label="Main menu"><svg class="i" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+  <a class="logo" href="#/new"><div class="mk"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div><span>Outreach</span></a>
+  <div class="hdr-right"><span id="activechip"></span>
+    <button class="ib" id="theme" aria-label="Toggle dark mode"></button></div>
+</header>
+<div class="shell">
+  <nav id="nav"></nav>
+  <main class="main"><div class="page" id="page"></div></main>
+</div>
+<div class="snack" id="snack"></div>
+<script>
+(() => {
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const P = {
+  edit: "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+  runs: "M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
+  biz: "M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z",
+  gear: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z",
+  star: "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z",
+  dot: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  send: "M2.01 21L23 12 2.01 3 2 10l15 2-15 2z",
+  done: "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
+  close: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+  add: "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
+  inbox: "M19 3H4.99c-1.11 0-1.98.89-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5a2 2 0 0 0-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z",
+  stop: "M6 6h12v12H6z",
+  warn: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z",
+  ok: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
+  people: "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z",
+  science: "M19.8 18.4L14 10.67V6.5l1.35-1.69c.26-.33.03-.81-.39-.81H9.04c-.42 0-.65.48-.39.81L10 6.5v4.17L4.2 18.4c-.49.66-.02 1.6.8 1.6h14c.82 0 1.29-.94.8-1.6z",
+};
+const I = (n, extra = "") => `<svg class="i" viewBox="0 0 24 24" ${extra}><path d="${P[n]}"/></svg>`;
+const PAL = ["#1a73e8", "#e8710a", "#188038", "#a142f4", "#d93025", "#007b83", "#c26401", "#5f6368"];
+const colorOf = (s) => PAL[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % PAL.length];
+const ini = (s) => (String(s).replace(/[^A-Za-z ]/g, "").trim()[0] || "?").toUpperCase();
+const ls = { get(k, d) { try { const v = localStorage.getItem("outreach-app:" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem("outreach-app:" + k, JSON.stringify(v)); } catch (e) {} } };
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", "X-Outreach": "1", ...(opts.headers || {}) },
+                                  body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+let snackT;
+function snack(msg) { const s = $("snack"); s.textContent = msg; s.classList.add("show"); clearTimeout(snackT); snackT = setTimeout(() => s.classList.remove("show"), 3500); }
+
+let ST = { companies: [], sender: {}, keys: {}, sender_ready: false, busy: null, active: null };
+async function refreshState() { ST = await api("/api/state"); renderNav(); renderActive(); }
+
+// ---------- shell ----------
+function route() { return (location.hash || "#/new").slice(2).split("/"); }
+function renderNav() {
+  const r = route()[0];
+  const needs = !ST.sender_ready || !ST.keys.anthropic;
+  $("nav").innerHTML = `
+    <a class="fab" href="#/new">${I("edit")}New request</a>
+    <a class="nv" href="#/runs" aria-current="${r === "runs" ? "page" : "false"}">${I("runs")}<span class="lbl">Runs</span></a>
+    <a class="nv" href="#/portfolio" aria-current="${r === "portfolio" ? "page" : "false"}">${I("biz")}<span class="lbl">Portfolio</span><span class="cnt">${ST.companies.length || ""}</span></a>
+    <a class="nv" href="#/settings" aria-current="${r === "settings" ? "page" : "false"}">${I("gear")}<span class="lbl">Settings</span>${needs ? '<span class="warn" title="Needs setup"></span>' : ""}</a>`;
+}
+function renderActive() {
+  $("activechip").innerHTML = ST.active && !ST.active.startsWith("plan-") ? `<a class="status-chip" href="#/runs/${esc(ST.active)}"><span class="dot"></span>Run in progress</a>` : "";
+}
+
+// ---------- new request ----------
+const EXAMPLES = [
+  ["Meet companies", "find general contractors and construction firms that might want robotics for materials handling, mid-size, US"],
+  ["Find people", "find systems engineers who have deployed autonomous mobile robot fleets in warehouses"],
+];
+let draft = ls.get("draft", { company: "", request: "", n: 5, demo: false });
+let planned = null;
+function pageNew() {
+  if (!draft.company || !ST.companies.some((c) => c.slug === draft.company)) draft.company = (ST.companies[0] || {}).slug || "";
+  const comp = ST.companies.find((c) => c.slug === draft.company);
+  const noKey = !ST.keys.anthropic;
+  if (noKey && draft.demo === false && !ls.get("demoChosen", false)) draft.demo = true;
+  const problems = draft.demo ? [] : [
+    !comp ? `Add a portfolio company in <a href="#/portfolio">Portfolio</a>.` : comp.placeholders ? `Finish <a href="#/portfolio/${esc(comp.slug)}">${esc(comp.name)}'s profile</a>: it still has placeholder text.` : "",
+    !ST.sender_ready ? `Fill in your sender details and firm address in <a href="#/settings">Settings</a>.` : "",
+    noKey ? `Add your Anthropic API key in <a href="#/settings">Settings</a>.` : "",
+  ].filter(Boolean);
+  $("page").innerHTML = `
+    <h1>New request</h1>
+    <p class="sub">Describe who a portfolio company should meet or hire. You'll see the plan and its cost before anything runs.</p>
+    <label class="f">For</label>
+    <div class="chips" id="companies">${draft.demo ? `<button class="chip" aria-pressed="true" disabled>${I("science")}Example Robotics (demo)</button>`
+      : ST.companies.map((c) => `<button class="chip" data-c="${esc(c.slug)}" aria-pressed="${c.slug === draft.company}">${esc(c.name)}${c.placeholders ? '<span class="tiny" title="Profile has placeholders"></span>' : ""}</button>`).join("")
+        + `<a class="chip" href="#/portfolio">${I("add")}Add company</a>`}</div>
+    <label class="f" for="req">Request</label>
+    <textarea class="t big" id="req" placeholder="e.g. find mid-size general contractors in Texas that run their own equipment yards">${esc(draft.request)}</textarea>
+    <div class="examples">${EXAMPLES.map(([k, v], i) => `<button data-ex="${i}"><b>${k}:</b> ${esc(v)}</button>`).join("")}</div>
+    <div class="row2" style="margin-top:8px">
+      <div><label class="f">How many targets</label><div class="seg" id="nseg">${[5, 10, 20].map((n) => `<button data-n="${n}" aria-pressed="${draft.n === n}">${n}</button>`).join("")}</div>
+        <div class="help">Start with 5. Cost and time grow with the number.</div></div>
+      <div><label class="f">Demo data</label><label class="switch"><input type="checkbox" id="demo" ${draft.demo ? "checked" : ""}><span>Use fictional data (no API key, no cost)</span></label>
+        <div class="help">Runs the full pipeline on made-up companies so you can try the workflow.</div></div>
+    </div>
+    ${problems.length ? `<div class="banner warn">${I("warn")}<div><b>Before a real run</b><ul>${problems.map((p) => `<li>${p}</li>`).join("")}</ul></div></div>` : ""}
+    <div class="actions"><button class="btn fill" id="preview" ${problems.length ? "disabled" : ""}>Preview plan</button><span class="help" id="planmsg"></span></div>
+    <div id="plan"></div>`;
+  const save = () => ls.set("draft", draft);
+  $("req").oninput = (e) => { draft.request = e.target.value; planned = null; $("plan").innerHTML = ""; save(); };
+  document.querySelectorAll("[data-ex]").forEach((b) => b.onclick = () => { draft.request = EXAMPLES[+b.dataset.ex][1]; $("req").value = draft.request; planned = null; $("plan").innerHTML = ""; save(); });
+  document.querySelectorAll("[data-c]").forEach((b) => b.onclick = () => { draft.company = b.dataset.c; planned = null; save(); pageNew(); });
+  document.querySelectorAll("[data-n]").forEach((b) => b.onclick = () => { draft.n = +b.dataset.n; save(); pageNew(); if (planned) showPlan(); });
+  $("demo").onchange = (e) => { draft.demo = e.target.checked; ls.set("demoChosen", true); planned = null; save(); pageNew(); };
+  $("preview").onclick = preview;
+  if (planned) showPlan();
+}
+async function preview() {
+  if (!draft.request.trim()) { snack("Type a request first"); $("req").focus(); return; }
+  const b = $("preview"); b.disabled = true; b.innerHTML = `<span class="spinner"></span>Planning…`;
+  $("planmsg").textContent = draft.demo ? "" : "Checking web search, then planning. This takes a few seconds.";
+  try {
+    planned = await api("/api/plan", { method: "POST", body: { company: draft.company, request: draft.request, n: draft.n, demo: draft.demo } });
+    showPlan();
+  } catch (e) { $("plan").innerHTML = `<div class="banner bad">${I("warn")}<div>${esc(e.message)}</div></div>`; }
+  finally { b.disabled = false; b.textContent = "Preview plan"; $("planmsg").textContent = ""; }
+}
+function showPlan() {
+  const p = planned.plan, e = planned.estimate;
+  $("plan").innerHTML = `<div class="card">
+    <h3>${p.mode === "people" ? I("people") + "Finding people" : I("biz") + "Meeting companies"}<span class="lb blue">${draft.n} targets</span>${draft.demo ? '<span class="lb warn">Demo data</span>' : ""}</h3>
+    <div class="help">The ask in every message: “${esc(p.ask)}”</div>
+    <div class="plan-grid">
+      <div><h4>What counts as a fit</h4><ul>${p.rubric.map((r) => `<li class="${r.must_have ? "must" : ""}">${I(r.must_have ? "star" : "dot")}<span>${esc(r.criterion)}${r.must_have ? ' <span class="lb" style="height:18px">must-have</span>' : ""}</span></li>`).join("")}</ul>
+        <h4>Ruled out</h4><ul>${p.disqualifiers.map((d) => `<li>${I("close")}<span>${esc(d)}</span></li>`).join("") || "<li>None</li>"}</ul></div>
+      <div><h4>${p.mode === "people" ? "People sought" : "Who to contact"}</h4><div class="chips" style="gap:6px">${p.target_titles.map((t) => `<span class="lb">${esc(t)}</span>`).join("")}</div>
+        <h4>Searches</h4><ul>${p.queries.map((q) => `<li>${I("dot")}<span>${esc(q)}</span></li>`).join("")}</ul></div>
+    </div>
+    <div class="est"><div><b>~${e.calls}</b><span>Claude calls</span></div><div><b>~${e.searches}</b><span>web searches</span></div><div><b>${e.minutes[0]}–${e.minutes[1]} min</b><span>estimated time</span></div>${draft.demo ? "<div><b>$0</b><span>demo data</span></div>" : ""}</div>
+    <div class="actions"><button class="btn fill" id="go">${I("send")}Run it</button><button class="btn" id="edit">Edit request</button></div></div>`;
+  $("edit").onclick = () => { $("req").focus(); };
+  $("go").onclick = async () => {
+    $("go").disabled = true;
+    try {
+      const r = await api("/api/runs", { method: "POST", body: { company: draft.company, request: draft.request, n: draft.n, demo: draft.demo, plan: p } });
+      planned = null; draft.request = ""; ls.set("draft", draft);
+      location.hash = `#/runs/${r.id}`;
+    } catch (err) { snack(err.message); $("go").disabled = false; }
+  };
+}
+
+// ---------- runs ----------
+const STATUS = { running: ["blue", "Running"], done: ["ok", "Done"], error: ["bad", "Failed"], cancelled: ["", "Stopped"], incomplete: ["warn", "Incomplete"] };
+async function pageRuns() {
+  $("page").innerHTML = `<h1>Runs</h1><p class="sub">Every request you've run. Open one to review and send its drafts.</p><div class="rows" id="runlist"><div class="empty">Loading…</div></div>`;
+  const { runs } = await api("/api/runs");
+  $("runlist").innerHTML = runs.length ? runs.map((r) => {
+    const [cls, label] = STATUS[r.status] || ["", r.status];
+    const href = r.status !== "running" && r.has_inbox ? `/runs/${encodeURIComponent(r.id)}/results.html` : `#/runs/${encodeURIComponent(r.id)}`;
+    return `<a class="r" href="${href}">
+      <div class="av" style="background:${colorOf(r.company)}">${esc(ini(r.company))}</div>
+      <div class="main-col"><div class="t1">${esc(r.company)}${r.demo ? ' <span class="lb warn">Demo</span>' : ""}</div><div class="t2">${esc(r.request)}</div></div>
+      <span class="lb ${cls}">${label}</span>
+      <div class="side">${r.targets ? `<b style="color:var(--ink)">${r.ready}</b> of ${r.targets} ready` : "—"}<br>${esc(new Date(r.started).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</div></a>`;
+  }).join("") : `<div class="empty"><b>No runs yet</b><a href="#/new">Start a request</a> to see it here.</div>`;
+}
+const STAGES = [["Plan", /planner|preflight/], ["Search", /sourcer/], ["Research", /researcher|people:/], ["Contacts", /contacts|skip:/], ["Write", /writer/], ["Review", /reviewer|✓|·/]];
+let poll, logLen = 0, logText = "";
+async function pageRun(id) {
+  clearTimeout(poll); logLen = 0; logText = "";
+  $("page").innerHTML = `<div id="runhead"></div><div id="runbody"></div>`;
+  const tick = async () => {
+    let d;
+    try { d = await api(`/api/runs/${encodeURIComponent(id)}?since=${logLen}`); } catch (e) { $("runbody").innerHTML = `<div class="banner bad">${I("warn")}<div>${esc(e.message)}</div></div>`; return; }
+    if (route()[0] !== "runs" || route()[1] !== id) return;
+    const job = d.job, status = job ? job.status : d.status;
+    if (job) { logText += job.log.map((l) => l + "\n").join(""); logLen = job.log_len; }
+    const lines = logText.split("\n");
+    let stage = -1;
+    lines.forEach((l) => STAGES.forEach(([, re], i) => { if (re.test(l)) stage = Math.max(stage, i); }));
+    if (status === "done") stage = STAGES.length;
+    const [cls, label] = STATUS[status] || ["", status];
+    $("runhead").innerHTML = `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h1 style="flex:1;min-width:0">${esc(d.company || "Run")}</h1><span class="lb ${cls}">${label}</span>${d.demo ? '<span class="lb warn">Demo data</span>' : ""}</div>
+      <p class="sub">${esc(d.request || "")}</p>`;
+    const live = d.live || [];
+    $("runbody").innerHTML = `
+      <div class="steps">${STAGES.map(([n], i) => `<div class="step ${i < stage ? "done" : i === stage && status === "running" ? "now" : ""}"><div class="b">${i < stage ? I("done") : ""}</div><span>${n}</span></div>`).join("")}</div>
+      <div class="counts"><div><b>${live.length}</b><span>finished</span></div><div><b>${live.filter((t) => t.status === "ready").length}</b><span>ready to send</span></div><div><b>${job ? fmtTime(job.elapsed) : "—"}</b><span>elapsed</span></div></div>
+      ${status === "error" ? `<div class="banner bad">${I("warn")}<div><b>The run stopped.</b><br>${esc(job ? job.error : "")}</div></div>` : ""}
+      ${status === "cancelled" ? `<div class="banner warn">${I("warn")}<div>${esc(job.error)}</div></div>` : ""}
+      <div class="actions">${d.has_inbox ? `<a class="btn fill" href="/runs/${encodeURIComponent(id)}/results.html">${I("inbox")}Open inbox${status === "running" ? " (so far)" : ""}</a>` : ""}
+        ${status === "running" ? `<button class="btn danger" id="stop">${I("stop")}Stop</button>` : ""}<span class="grow"></span></div>
+      ${live.length ? `<h2>Results so far</h2><div class="rows">${live.map((t) => `<a class="r" href="/runs/${encodeURIComponent(id)}/results.html">
+        <div class="av" style="background:${colorOf(t.target)}">${esc(ini(t.target))}</div>
+        <div class="main-col"><div class="t1">${esc(t.target)}${t.contact && t.contact !== "unknown" && t.contact !== t.target ? ` <span style="font-weight:400;color:var(--ink-3)">· ${esc(t.contact)}</span>` : ""}</div><div class="t2">${esc(t.hook)}</div></div>
+        <span class="lb ${t.status === "ready" ? "ok" : "bad"}">${t.status === "ready" ? "Ready" : "Needs review"}</span><div class="side">${esc(t.channel)}</div></a>`).join("")}</div>` : ""}
+      <details class="log" ${status === "error" ? "open" : ""}><summary>Activity log</summary><pre id="logpre">${esc(logText.trim() || "Starting…")}</pre></details>`;
+    const pre = $("logpre"); pre.scrollTop = pre.scrollHeight;
+    const stop = $("stop"); if (stop) stop.onclick = async () => { stop.disabled = true; try { await api(`/api/runs/${encodeURIComponent(id)}/cancel`, { method: "POST" }); } catch (e) { snack(e.message); } };
+    if (status === "running") poll = setTimeout(tick, 1000); else refreshState();
+  };
+  tick();
+}
+const fmtTime = (s) => s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`;
+
+// ---------- portfolio ----------
+function pagePortfolio() {
+  $("page").innerHTML = `<h1>Portfolio</h1><p class="sub">One profile per portfolio company. Messages only use facts from these profiles, so keep them true and specific.</p>
+    <div class="actions" style="margin-top:0;margin-bottom:16px"><input class="t" id="newname" placeholder="New company name" style="max-width:320px"><button class="btn tonal" id="add">${I("add")}Add company</button></div>
+    <div class="rows">${ST.companies.map((c) => `<a class="r" href="#/portfolio/${esc(c.slug)}"><div class="av" style="background:${colorOf(c.name)}">${esc(ini(c.name))}</div>
+      <div class="main-col"><div class="t1">${esc(c.name)}</div><div class="t2">portfolio/${esc(c.slug)}.yaml</div></div>
+      ${c.placeholders ? '<span class="lb warn">Needs details</span>' : '<span class="lb ok">Ready</span>'}</a>`).join("") || '<div class="empty"><b>No companies yet</b>Add your first portfolio company above.</div>'}</div>`;
+  $("add").onclick = async () => {
+    const name = $("newname").value.trim(); if (!name) { $("newname").focus(); return; }
+    try { const r = await api("/api/companies", { method: "POST", body: { name } }); await refreshState(); location.hash = `#/portfolio/${r.slug}`; } catch (e) { snack(e.message); }
+  };
+  $("newname").onkeydown = (e) => { if (e.key === "Enter") $("add").click(); };
+}
+const CFIELDS = [
+  ["company_name", "Company name", "input", ""], ["founder_name", "Founder", "input", "Named in intros as the person you'll connect them with."],
+  ["pitch", "What they do", "textarea", "2-3 plain sentences. The writer rephrases this for each recipient; it never pastes it."],
+  ["icp_notes", "Who they want to meet", "textarea", "Type, size, region, and the signs of a good fit."],
+  ["founder_bio", "Founder background (optional)", "input", "One line, e.g. “ex-Amazon Robotics deployment lead”."],
+  ["stage_and_backers", "Stage and backers (optional)", "input", "e.g. “Seed, $6M, led by Your Fund”."],
+  ["investor_note", "Why you backed them (optional)", "input", "One line of credibility for the intro."],
+  ["offer", "Offer (optional)", "input", "e.g. “a free 4-week pilot in one yard”."],
+];
+async function pageCompany(slug) {
+  $("page").innerHTML = `<div class="empty">Loading…</div>`;
+  let prof;
+  try { prof = (await api(`/api/companies/${encodeURIComponent(slug)}`)).profile; } catch (e) { $("page").innerHTML = `<div class="banner bad">${esc(e.message)}</div>`; return; }
+  const ph = (v) => String(v || "").includes("PLACEHOLDER");
+  const clean = (v) => String(v || "").replace(/^PLACEHOLDER:\s*/, "");
+  $("page").innerHTML = `<a href="#/portfolio" class="help">‹ Portfolio</a><h1 style="margin-top:6px">${esc(clean(prof.company_name) || slug)}</h1>
+    <p class="sub">Highlighted fields still hold template text. The tool won't run for this company until they're filled in.</p>
+    ${CFIELDS.map(([k, label, kind, help]) => `<label class="f" for="f-${k}">${label}</label>
+      ${kind === "input" ? `<input class="t ${ph(prof[k]) ? "ph-warn" : ""}" id="f-${k}" value="${esc(clean(prof[k]))}" placeholder="${ph(prof[k]) ? esc(clean(prof[k])) : ""}">`
+        : `<textarea class="t ${ph(prof[k]) ? "ph-warn" : ""}" id="f-${k}">${esc(clean(prof[k]))}</textarea>`}${help ? `<div class="help">${help}</div>` : ""}`).join("")}
+    <label class="f">Proof points</label><div class="help" style="margin:0 0 8px">True, specific facts the writer may cite (customers, deployments, metrics).</div>
+    <div class="list-editor" id="proofs"></div><button class="btn" id="addproof">${I("add")}Add proof point</button>
+    <label class="f" style="margin-top:24px">Open roles (for hiring requests)</label><div id="roles"></div><button class="btn" id="addrole">${I("add")}Add role</button>
+    <div class="actions"><button class="btn fill" id="save">Save</button><a class="btn" href="#/portfolio">Cancel</a></div>`;
+  const proofs = (prof.proof_points || []).map(String), roles = (prof.roles || []).map((r) => ({ ...r }));
+  const drawProofs = () => {
+    $("proofs").innerHTML = proofs.map((p, i) => `<div class="li"><input class="t ${ph(p) ? "ph-warn" : ""}" data-p="${i}" value="${esc(clean(p))}"><button class="ib" data-rp="${i}" aria-label="Remove">${I("close")}</button></div>`).join("");
+    $("proofs").querySelectorAll("[data-p]").forEach((el) => el.oninput = () => { proofs[+el.dataset.p] = el.value; el.classList.remove("ph-warn"); });
+    $("proofs").querySelectorAll("[data-rp]").forEach((el) => el.onclick = () => { proofs.splice(+el.dataset.rp, 1); drawProofs(); });
+  };
+  const drawRoles = () => {
+    $("roles").innerHTML = roles.map((r, i) => `<div class="role"><input class="t" data-r="${i}" data-k="title" placeholder="Title" value="${esc(r.title || "")}"><input class="t" data-r="${i}" data-k="location" placeholder="Location" value="${esc(r.location || "")}"><input class="t" data-r="${i}" data-k="comp" placeholder="Comp" value="${esc(r.comp || "")}"><button class="ib" data-rr="${i}" aria-label="Remove">${I("close")}</button><textarea class="t" data-r="${i}" data-k="why_interesting" placeholder="Why it's interesting">${esc(r.why_interesting || "")}</textarea></div>`).join("");
+    $("roles").querySelectorAll("[data-r]").forEach((el) => el.oninput = () => { roles[+el.dataset.r][el.dataset.k] = el.value; });
+    $("roles").querySelectorAll("[data-rr]").forEach((el) => el.onclick = () => { roles.splice(+el.dataset.rr, 1); drawRoles(); });
+  };
+  drawProofs(); drawRoles();
+  document.querySelectorAll("input.t, textarea.t").forEach((el) => el.addEventListener("input", () => el.classList.remove("ph-warn")));
+  $("addproof").onclick = () => { proofs.push(""); drawProofs(); $("proofs").querySelector(`[data-p="${proofs.length - 1}"]`).focus(); };
+  $("addrole").onclick = () => { roles.push({ title: "" }); drawRoles(); };
+  $("save").onclick = async () => {
+    const out = {};
+    CFIELDS.forEach(([k]) => { const el = $("f-" + k); out[k] = el.classList.contains("ph-warn") ? "PLACEHOLDER: " + el.value : el.value; });
+    out.proof_points = proofs.map((p, i) => { const el = $("proofs").querySelector(`[data-p="${i}"]`); return el && el.classList.contains("ph-warn") ? "PLACEHOLDER: " + p : p; });
+    out.roles = roles;
+    try { await api(`/api/companies/${encodeURIComponent(slug)}`, { method: "PUT", body: { profile: out } }); await refreshState(); snack("Profile saved"); location.hash = "#/portfolio"; }
+    catch (e) { snack(e.message); }
+  };
+}
+
+// ---------- settings ----------
+function pageSettings() {
+  const s = ST.sender, ph = (v) => String(v || "").includes("PLACEHOLDER"), clean = (v) => String(v || "").replace(/^PLACEHOLDER:\s*/, "");
+  const f = (k, label, help = "") => `<div><label class="f" for="s-${k}">${label}</label><input class="t ${ph(s[k]) ? "ph-warn" : ""}" id="s-${k}" value="${ph(s[k]) ? "" : esc(s[k])}" placeholder="${esc(clean(s[k]))}">${help ? `<div class="help">${help}</div>` : ""}</div>`;
+  $("page").innerHTML = `<h1>Settings</h1><p class="sub">Saved on this computer only.</p>
+    <h2>You, as the sender</h2>
+    <div class="row2">${f("name", "Your name")}${f("title", "Title")}</div>
+    <div class="row2">${f("firm", "Firm")}${f("email", "Email", "Gmail links open in this account.")}</div>
+    ${f("firm_address", "Firm postal address", "Required in every email's footer (CAN-SPAM).")}
+    <label class="f">Write emails as</label><div class="seg" id="voice">${[["investor", "Me, introducing the founder"], ["founder", "The founder"]].map(([k, l]) => `<button data-v="${k}" aria-pressed="${(s.voice || "investor") === k}">${l}</button>`).join("")}</div>
+    <div class="actions"><button class="btn fill" id="savesender">Save sender</button>${ST.sender_ready ? `<span class="lb ok">${I("done", 'style="width:14px;height:14px"')}Complete</span>` : '<span class="lb warn">Incomplete</span>'}</div>
+    <h2 style="margin-top:40px">API keys</h2>
+    <label class="f" for="k-a">Anthropic API key ${ST.keys.anthropic ? `<span class="lb ok" style="margin-left:6px">Set: ${esc(ST.keys.anthropic)}</span>` : '<span class="lb warn" style="margin-left:6px">Not set</span>'}</label>
+    <input class="t" id="k-a" type="password" placeholder="${ST.keys.anthropic ? "Paste a new key to replace it" : "sk-ant-…"}" autocomplete="off">
+    <div class="help">Web search must be enabled for your organization in the Claude Console.</div>
+    <label class="f" for="k-p">Apollo API key (optional) ${ST.keys.apollo ? `<span class="lb ok" style="margin-left:6px">Set</span>` : ""}</label>
+    <input class="t" id="k-p" type="password" placeholder="Finds verified personal emails for named contacts" autocomplete="off">
+    <div style="margin-top:14px"><label class="switch"><input type="checkbox" id="remember" checked><span>Remember on this computer (saved to .env, which git ignores)</span></label></div>
+    <div class="actions"><button class="btn fill" id="savekeys">Save keys</button></div>`;
+  let voice = s.voice || "investor";
+  document.querySelectorAll("[data-v]").forEach((b) => b.onclick = () => { voice = b.dataset.v; document.querySelectorAll("[data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); });
+  $("savesender").onclick = async () => {
+    const body = { voice }; ["name", "title", "firm", "email", "firm_address"].forEach((k) => body[k] = $("s-" + k).value);
+    try { await api("/api/sender", { method: "PUT", body }); await refreshState(); pageSettings(); snack("Sender saved"); } catch (e) { snack(e.message); }
+  };
+  $("savekeys").onclick = async () => {
+    const body = { anthropic: $("k-a").value, apollo: $("k-p").value, remember: $("remember").checked };
+    if (!body.anthropic && !body.apollo) { snack("Paste a key first"); return; }
+    try { const r = await api("/api/keys", { method: "POST", body }); await refreshState(); pageSettings(); snack(r.saved ? "Keys saved" : "Keys set for this session"); } catch (e) { snack(e.message); }
+  };
+}
+
+// ---------- router ----------
+async function render() {
+  clearTimeout(poll);
+  document.body.classList.remove("drawer");
+  try { await refreshState(); } catch (e) { $("page").innerHTML = `<div class="banner bad">${I("warn")}<div>Can't reach the Outreach server. Is <code>python main.py --serve</code> still running?</div></div>`; return; }
+  const [r, arg] = route();
+  if (r === "runs" && arg) return pageRun(decodeURIComponent(arg));
+  if (r === "runs") return pageRuns();
+  if (r === "portfolio" && arg) return pageCompany(decodeURIComponent(arg));
+  if (r === "portfolio") return pagePortfolio();
+  if (r === "settings") return pageSettings();
+  return pageNew();
+}
+window.addEventListener("hashchange", render);
+$("menu").onclick = () => document.body.classList.toggle("drawer");
+const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+const themeIcon = () => { $("theme").innerHTML = `<svg class="i" viewBox="0 0 24 24"><path d="${isDark() ? "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z" : "M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"}"/></svg>`; };
+$("theme").onclick = () => { document.documentElement.dataset.theme = isDark() ? "light" : "dark"; try { localStorage.setItem("outreach:theme", document.documentElement.dataset.theme); } catch (e) {} themeIcon(); };
+try { const t = localStorage.getItem("outreach:theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+themeIcon();
+render();
+})();
+</script>
+</body>
+</html>

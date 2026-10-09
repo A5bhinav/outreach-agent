@@ -5,6 +5,7 @@ Usage:
     python main.py "find systems engineers for Acme Robotics who've deployed AMR fleets" --n 10
     python main.py --new-company "Acme Robotics"     # create portfolio/acme-robotics.yaml to fill in
     python main.py --list-companies
+    python main.py --serve                           # web app: type requests, review, send (recommended)
     python main.py --demo                            # full offline run on fictional data, no setup needed
     python main.py --mark-sent outputs/<run>          # after sending: record them in the ledger
     python main.py --opt-out someone@example.com      # never contact again, for any portfolio company
@@ -196,7 +197,7 @@ def _show_plan(p: dict, n: int) -> None:
 
 
 async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger, preflight: bool = True,
-              confirm=None, resume: dict | None = None, profile: str = "") -> list[dict]:
+              confirm=None, resume: dict | None = None, profile: str = "", approved_plan: dict | None = None) -> list[dict]:
     """Run the pipeline. With `resume` (a previous run.json), reuse its plan and finished targets,
     finish the targets it had already selected, and only search again if it never got that far."""
     state: dict = resume or {"request": request, "n": n, "profile": profile}
@@ -205,7 +206,12 @@ async def run(request: str, startup: dict, n: int, outdir: Path, ledger: Ledger,
             await llm.preflight()
         else:
             llm.STRICT_400 = False
-        if resume and resume.get("plan"):
+        if approved_plan:
+            p = approved_plan  # already planned and shown to the user (web app)
+            state["plan"] = p
+            llm.log(f"planner: using the approved plan (mode={p['mode']}, {len(p['queries'])} queries)")
+            _checkpoint(outdir, state)
+        elif resume and resume.get("plan"):
             p = resume["plan"]
             llm.log(f"resume: reusing the plan, {len(resume.get('done', []))} finished and "
                     f"{len(resume.get('selected', []))} selected targets")
@@ -298,6 +304,8 @@ def main() -> None:
                     help="run even though the config has PLACEHOLDER values (every email will be blocked)")
     ap.add_argument("--skip-preflight", action="store_true", help="skip the startup web-search check")
     ap.add_argument("--resume", metavar="RUN_DIR", help="continue an interrupted run from its run.json")
+    ap.add_argument("--serve", action="store_true", help="open the web app in your browser (no terminal needed after this)")
+    ap.add_argument("--port", type=_pos_int, default=8765, help="with --serve: port (default 8765)")
     ap.add_argument("--demo", action="store_true",
                     help="run the full pipeline offline on fictional data: no API key, profile or sender file needed")
     args = ap.parse_args()
@@ -325,6 +333,10 @@ def main() -> None:
             cfg = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
             todo = " (has PLACEHOLDERs)" if "PLACEHOLDER" in path.read_text(encoding="utf-8") else ""
             print(f"{slug:<28} {str(cfg.get('company_name', '')).replace('PLACEHOLDER:', '').strip()}{todo}")
+        return
+    if args.serve:
+        import webapp
+        webapp.serve(args.port)
         return
     if args.demo:
         _run_demo(args)

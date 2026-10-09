@@ -231,7 +231,7 @@ kbd { font: 11px ui-monospace, Menlo, monospace; border: 1px solid var(--line); 
 <body>
 <header>
   <button class="ib" id="menu" aria-label="Main menu"><svg class="i" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
-  <div class="logo"><div class="mk"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div><span>Outreach</span></div>
+  <a class="logo" id="logo" href="#" style="text-decoration:none"><div class="mk"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div><span>Outreach</span></a>
   <label class="search"><span class="ib" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span><input id="q" placeholder="Search drafts" aria-label="Search drafts"><button class="ib sm" id="qclear" aria-label="Clear search" style="visibility:hidden"><svg class="i" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></label>
   <div class="hdr-right"><span class="demo-chip" id="demochip" hidden>Demo · fictional data</span>
     <button class="ib" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)"><svg class="i" viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg></button>
@@ -352,12 +352,21 @@ async function copy(text, what) {
   catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
   snack(what + " copied to clipboard");
 }
+// When opened through the web app (python main.py --serve), sent status syncs to the shared ledger.
+async function syncLedger(targets, sent) {
+  if (!M.app || !targets.length) return;
+  try {
+    await fetch("/api/ledger", { method: "POST", headers: { "Content-Type": "application/json", "X-Outreach": "1" },
+                                 body: JSON.stringify({ run: M.run, targets, sent }) });
+  } catch (e) { snack("Couldn't reach the Outreach app to update the ledger"); }
+}
 function setSent(list, on) {
-  const before = JSON.stringify(S.sent);
+  const before = JSON.parse(JSON.stringify(S.sent));
+  const changed = list.filter((r) => isSent(r) !== on).map((r) => r.target);
   list.forEach((r) => { if (on) S.sent[r.target] = new Date().toISOString().slice(0, 10); else delete S.sent[r.target]; });
-  store.set("sent", S.sent); render();
+  store.set("sent", S.sent); render(); syncLedger(changed, on);
   snack(on ? (list.length > 1 ? `${list.length} conversations marked as sent` : "Marked as sent") : "Marked as not sent",
-        () => { S.sent = JSON.parse(before); store.set("sent", S.sent); render(); });
+        () => { S.sent = before; store.set("sent", S.sent); render(); syncLedger(changed, !on); });
 }
 
 // ---------- nav ----------
@@ -376,7 +385,9 @@ function renderNav() {
     <div class="runinfo"><b>${esc(M.company)}</b><br>${M.mode === "people" ? "Finding people" : "Meeting companies"} · ${esc(M.date)}
       <div class="meter"><i style="width:${ready.length ? 100 * sent.length / ready.length : 0}%"></i></div><span id="progtxt">${sent.length} of ${ready.length} ready sent</span></div>
     <div class="ledger ${sent.length ? "show" : ""}" id="ledger"></div>`;
-  if (sent.length) {
+  if (sent.length && M.app) {
+    $("ledger").innerHTML = `${I("done", 'style="width:16px;height:16px;vertical-align:-3px;color:var(--ok-ink)"')} Sent status is synced to the shared ledger, so nobody gets contacted twice.`;
+  } else if (sent.length) {
     const cmd = `python main.py --mark-sent "${M.outdir}" --only "${sent.map((r) => r.target.replace(/"/g, "")).join(",")}"`;
     $("ledger").innerHTML = `Record what you've sent in the shared ledger so nobody is contacted twice:<code>${esc(cmd)}</code><button class="txtbtn" id="cpled">Copy command</button>`;
     $("cpled").onclick = () => copy(cmd, "Command");
@@ -631,6 +642,12 @@ M.short = fmt(new Date().toISOString().slice(0, 10));
 M.senderColor = colorOf(M.sender || "You");
 $("me").textContent = ini(M.sender || "You"); $("me").style.background = M.senderColor; $("me").title = M.sender || "";
 $("demochip").hidden = !M.demo;
+M.app = false;
+if (location.protocol.startsWith("http")) {
+  fetch("/api/ping").then((r) => r.ok && r.json()).then((d) => {
+    if (d && d.ok) { M.app = true; $("logo").href = "/#/runs"; $("logo").title = "Back to Outreach"; renderNav(); }
+  }).catch(() => {});
+}
 document.title = `Outreach · ${M.company || "drafts"}`;
 if (S.folder !== "all" && !S.folder.startsWith("ch:") && !rows.some((r) => folderOf(r) === S.folder)) S.folder = rows.some((r) => folderOf(r) === "drafts") ? "drafts" : "all";
 render();

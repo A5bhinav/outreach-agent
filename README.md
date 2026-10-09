@@ -1,7 +1,7 @@
 # outreach-agent
 
-Proof-of-concept CLI for portfolio support requests. Give it a plain-English request and a
-portfolio company profile. It works out whether you want to **meet companies** (customers,
+Proof-of-concept tool for portfolio support requests, with a local web app and a CLI. Give
+it a plain-English request and pick a portfolio company. It works out whether you want to **meet companies** (customers,
 pilot sites, partners) or **find people** (e.g. a specific kind of engineer to hire). It shows
 you its plan, searches the web for targets, and drafts a personalized, fact-checked message for
 each one, written as you, the investor. Each message comes with a follow-up and a short
@@ -11,14 +11,30 @@ LinkedIn note. Results land on a review page with a one-click action per target.
 ![The review inbox: drafts listed like an inbox](docs/review-inbox.png)
 ![Reading a draft: the email, its follow-up, and the research behind it](docs/review-app.png)
 
-## Quick start (no API key needed)
+## Quick start
 
 ```bash
 git clone https://github.com/A5bhinav/outreach-agent && cd outreach-agent
-./setup.sh                     # virtualenv, dependencies, tests, then an offline demo run
+./setup.sh                          # virtualenv, dependencies, tests, offline demo
+.venv/bin/python main.py --serve    # the app, in your browser
 ```
 
-`./setup.sh` ends by running `python main.py --demo` and opening its review page. The demo:
+![The app: type a request, approve the plan, then run it](docs/app-new-request.png)
+
+The web app runs on your own machine at `127.0.0.1:8765`:
+1. **Settings:** your name, firm, email and firm address, plus your Anthropic API key. Keys can be remembered in a git-ignored `.env`.
+2. **Portfolio:** one profile per portfolio company, edited as a form.
+3. **New request:** pick the company and type who they should meet or hire. Before anything is spent you see the plan: what counts as a fit, the must-haves, who to contact, the searches, and an estimate of calls, web searches and time. Then click **Run it**.
+4. **The run page:** shows each stage and the targets as they finish, with a Stop button.
+5. **Open inbox:** the Gmail-style review inbox. Marking a draft as sent there updates the shared ledger directly.
+
+Without an API key, switch on **Demo data** to run the whole flow on fictional companies at no cost. The server only listens on your machine, accepts requests from its own pages only, and runs one job at a time.
+
+### Without the app
+
+The command line does everything the app does:
+
+`python main.py --demo` runs the pipeline offline on fictional data and opens the review inbox. The demo:
 - runs the real pipeline end to end: planning, sourcing, research, contact checks, writing, review, the ledger and every output file;
 - uses a scripted model and fictional companies and people (`.example` domains);
 - needs no API key, profile or sender file, and makes no network calls;

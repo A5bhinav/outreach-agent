@@ -30,6 +30,8 @@ usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0, "c
          "web_searches": 0, "web_fetches": 0, "calls": 0}
 by_step: dict[str, dict] = {}
 errors: list[str] = []
+# Optional per-run log capture (the web app streams these lines to the browser).
+sink: list[str] | None = None
 
 # Errors that will hit every call (bad key, no access, unknown model): stop the run.
 FATAL = (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.NotFoundError)
@@ -38,7 +40,23 @@ FATAL = (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthrop
 def log(msg: str) -> None:
     if "  ! " in msg:
         errors.append(msg.strip())
-    print(f"[{time.time() - _t0:6.1f}s] {msg}", file=sys.stderr, flush=True)
+    line = f"[{time.time() - _t0:6.1f}s] {msg}"
+    if sink is not None:
+        sink.append(line)
+    print(line, file=sys.stderr, flush=True)
+
+
+def reset() -> None:
+    """Fresh client, limits and counters for a new run (each run gets its own event loop)."""
+    global _client, _t0, STRICT_400, DIRECT_SEARCH
+    _client = None
+    _sems.clear()
+    _t0 = time.time()
+    STRICT_400, DIRECT_SEARCH = True, False
+    for k in usage:
+        usage[k] = 0
+    by_step.clear()
+    errors.clear()
 
 
 def _get():

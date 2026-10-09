@@ -270,10 +270,26 @@ def _page_text_for(url: str) -> str | None:
     return ("demo page filler " * 40 + text).lower().replace(",", "")
 
 
+_PATCHED = (planner, sourcer, researcher, contacts, people, writer, reviewer, llm)
+
+
 def install(request: str) -> DemoModel:
-    """Swap the model and page fetcher for scripted ones; returns the model for inspection."""
+    """Swap the model and page fetcher for scripted ones; returns the model for inspection.
+
+    Call the returned model's `restore()` to put the real ones back (the web app runs demo
+    and real runs in one process).
+    """
     model = DemoModel(request)
-    for m in (planner, sourcer, researcher, contacts, people, writer, reviewer, llm):
+    saved = [(m, "run_structured", m.run_structured) for m in _PATCHED if hasattr(m, "run_structured")]
+    saved += [(contacts, "page_text", contacts.page_text), (reviewer, "page_text", reviewer.page_text),
+              (contacts, "apollo_email", contacts.apollo_email)]
+
+    def restore() -> None:
+        for mod, name, orig in saved:
+            setattr(mod, name, orig)
+
+    model.restore = restore
+    for m in _PATCHED:
         if hasattr(m, "run_structured"):
             m.run_structured = model
 

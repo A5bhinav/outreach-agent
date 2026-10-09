@@ -183,6 +183,17 @@ class Ledger:
         self._write(self.rows, mode="w")
         return n
 
+    def unmark_sent(self, run: str, targets: set[str]) -> int:
+        """Undo mark_sent for a run's targets (back to drafted)."""
+        n = 0
+        for row in self.rows:
+            if row.get("run") == run and _status(row) == "sent" and row["target"] in targets:
+                row["status"] = "drafted"
+                n += 1
+        if n:
+            self._write(self.rows, mode="w")
+        return n
+
     def opt_out(self, email_or_domain: str) -> None:
         from .sourcer import domain
         v = email_or_domain.strip().lower()
