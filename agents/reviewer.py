@@ -43,7 +43,7 @@ BODY_WORDS = (40, 120)  # writer targets 50-110; small slack before flagging
 FOLLOWUP_MAX = 70
 NOTE_MAX = 300
 WEAK_HOOK_MONTHS = 12
-SIMILAR = 0.35  # 3-gram Jaccard between two bodies above which they read as one template
+SIMILAR = 0.45  # 3-gram Jaccard above which two bodies read as one template (a swapped opener on a shared body scores 0.5+; one necessary shared sentence, e.g. a role description, ~0.4)
 BUZZWORDS = re.compile(r"\b(synerg\w*|leverag\w*|revolutioni[sz]\w*|cutting[- ]edge|game[- ]chang\w*|"
                        r"streamlin\w*|best[- ]in[- ]class|disrupt\w*|paradigm|hope this (email )?finds you)\b", re.I)
 _PLACEHOLDER = re.compile(r"\[[A-Za-z][^\]]{0,30}\]|\{[A-Za-z_][^}]{0,30}\}|PLACEHOLDER|\b(hi|dear|hello) (unknown|not found)\b", re.I)

@@ -5,6 +5,7 @@ Usage:
     python main.py "find systems engineers for Acme Robotics who've deployed AMR fleets" --n 10
     python main.py --new-company "Acme Robotics"     # create portfolio/acme-robotics.yaml to fill in
     python main.py --list-companies
+    python main.py --demo                            # full offline run on fictional data, no setup needed
     python main.py --mark-sent outputs/<run>          # after sending: record them in the ledger
     python main.py --opt-out someone@example.com      # never contact again, for any portfolio company
 
@@ -257,6 +258,22 @@ def _confirm(n: int, yes: bool, plan_only: bool):
     return ask
 
 
+def _run_demo(args) -> None:
+    import copy
+
+    from agents import demo
+    request = args.request or demo.DEFAULT_REQUEST
+    demo.install(request)
+    outdir = Path(args.out) if args.out else ROOT / "outputs" / ("demo-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    ledger = Ledger(outdir / "ledger.csv", demo.PROFILE["company_name"])  # never touches the real ledger
+    llm.log("DEMO: scripted model and fictional data; no API calls, nothing real is contacted")
+    rows = asyncio.run(run(f"[DEMO, fictional data] {request}", copy.deepcopy(demo.PROFILE), args.n, outdir, ledger,
+                           preflight=False, confirm=_confirm(args.n, True, False)))
+    ready = sum(r["status"] == "ready" for r in rows)
+    llm.log(f"demo done: {len(rows)} targets, {ready} ready -> open {outdir / 'results.html'}")
+    print(outdir / "results.html")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("request", nargs="?", help="who you want to meet or find, in plain English")
@@ -281,6 +298,8 @@ def main() -> None:
                     help="run even though the config has PLACEHOLDER values (every email will be blocked)")
     ap.add_argument("--skip-preflight", action="store_true", help="skip the startup web-search check")
     ap.add_argument("--resume", metavar="RUN_DIR", help="continue an interrupted run from its run.json")
+    ap.add_argument("--demo", action="store_true",
+                    help="run the full pipeline offline on fictional data: no API key, profile or sender file needed")
     args = ap.parse_args()
 
     if args.opt_out:
@@ -306,6 +325,9 @@ def main() -> None:
             cfg = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
             todo = " (has PLACEHOLDERs)" if "PLACEHOLDER" in path.read_text(encoding="utf-8") else ""
             print(f"{slug:<28} {str(cfg.get('company_name', '')).replace('PLACEHOLDER:', '').strip()}{todo}")
+        return
+    if args.demo:
+        _run_demo(args)
         return
     resume = None
     if args.resume:

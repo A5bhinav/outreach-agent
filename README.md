@@ -8,6 +8,26 @@ each one, written as you, the investor. Each message comes with a follow-up and 
 LinkedIn note. Results land on a review page with a one-click action per target.
 **It never sends anything.** You review each message and send it yourself.
 
+## Quick start (no API key needed)
+
+```bash
+git clone https://github.com/A5bhinav/outreach-agent && cd outreach-agent
+./setup.sh                     # virtualenv, dependencies, tests, then an offline demo run
+```
+
+`./setup.sh` ends by running `python main.py --demo` and opening its review page. The demo:
+- runs the real pipeline end to end: planning, sourcing, research, contact checks, writing, review, the ledger and every output file;
+- uses a scripted model and fictional companies and people (`.example` domains);
+- needs no API key, profile or sender file, and makes no network calls;
+- can be run again any time, in either mode:
+
+```bash
+.venv/bin/python main.py --demo
+.venv/bin/python main.py --demo "find systems engineers who have deployed AMR fleets"
+```
+
+The setup script prints the five steps to a real run at the end (also under Setup below).
+
 ## Pipeline
 
 | Step | Module | What it does |
