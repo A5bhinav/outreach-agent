@@ -29,5 +29,5 @@ def test_review_app_interactions(tmp_path):
                           harness.as_uri()], capture_output=True, text=True, timeout=90).stdout
     out = re.search(r'<pre id="out">(.*?)</pre>', dom, re.S)
     results = re.findall(r"(PASS|FAIL) ([^\n<]+)", out.group(1) if out else "")
-    assert len(results) == 20, out.group(1) if out else dom[-2000:]
+    assert len(results) == 23, out.group(1) if out else dom[-2000:]
     assert [m for s, m in results if s == "FAIL"] == []

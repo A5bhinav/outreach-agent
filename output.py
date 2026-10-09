@@ -10,6 +10,7 @@ import csv
 import datetime
 import json
 import re
+import textwrap
 from email.headerregistry import Address
 from email.message import EmailMessage
 from pathlib import Path
@@ -132,6 +133,14 @@ def _eml(to: str, subject: str, body: str, sender: dict) -> bytes:
 
 
 def _md(rows: list[dict], facts: list[list[dict]], request: str) -> str:
+    # Long Gmail compose links go in reference definitions at the bottom so the text stays readable.
+    refs: list[str] = []
+
+    def ref(url: str) -> str:
+        if url not in refs:
+            refs.append(url)
+        return f"[{refs.index(url) + 1}]"
+
     ready = sum(r["status"] == "ready" for r in rows)
     by = {}
     for r in rows:
@@ -143,15 +152,15 @@ def _md(rows: list[dict], facts: list[list[dict]], request: str) -> str:
           "`python main.py --mark-sent <this folder>` so the ledger knows.\n",
           "| # | Target | Contact | Channel | Hook | Status | Action |", "|---|---|---|---|---|---|---|"]
     for i, (r, fs) in enumerate(zip(rows, facts), 1):
-        hook = next((f"{f['fact'][:70]} ({f['date']})" for f in fs if f["source_url"] == r["fact_source"]), r["fact_used"][:70])
-        action = f"[Open]({r['send_link']})" if r["send_link"] else "—"
+        hook = next((f"{textwrap.shorten(f['fact'], 72, placeholder='…')} ({f['date']})" for f in fs if f["source_url"] == r["fact_source"]), textwrap.shorten(r["fact_used"], 72, placeholder="…"))
+        action = f"[Open]{ref(r['send_link'])}" if r["send_link"] else "—"
         md.append(f"| {i} | {r['target']} | {r['contact_name'] if r['contact_name'] != 'unknown' else '—'} | {r['channel']} "
                   f"| {hook.replace('|', '/')} | {r['status']} | {action} |")
     md.append("")
     for i, (r, fs) in enumerate(zip(rows, facts), 1):
         md.append(f"## {i}. {r['target']} — {r['status']}\n")
         md.append(f"**Channel:** {r['channel']}" + (f" → {r['to_email']}" if r["to_email"] else "")
-                  + (f" · [Open]({r['send_link']})" if r["send_link"] else ""))
+                  + (f" · [Open]{ref(r['send_link'])}" if r["send_link"] else ""))
         if r["to_check"] != "none":
             md.append("\n**Check before sending:**\n" + "\n".join(f"- {f}" for f in r["to_check"].split(" | ")))
         if r["channel"].startswith("email") or r["channel"] in ("contact form", "none"):
@@ -159,10 +168,10 @@ def _md(rows: list[dict], facts: list[list[dict]], request: str) -> str:
             md.append("\n".join("> " + line for line in r["email_body"].splitlines()) + "\n")
         if r["linkedin_note"] and r["channel"] in ("LinkedIn note", "none"):
             md.append(f"\n**LinkedIn note** ({len(r['linkedin_note'])} chars)"
-                      + (f" · [profile]({r['profile_link']})" if r["profile_link"] else "") + f"\n\n> {r['linkedin_note']}\n")
+                      + (f" · [profile]{ref(r['profile_link'])}" if r["profile_link"] else "") + f"\n\n> {r['linkedin_note']}\n")
         if r["followup_body"]:
             md.append(f"**Follow-up** (send {r['followup_send_after']} if no reply, same thread)"
-                      + (f" · [Open]({r['followup_link']})" if r["followup_link"] else "") + "\n")
+                      + (f" · [Open follow-up]{ref(r['followup_link'])}" if r["followup_link"] else "") + "\n")
             md.append("\n".join("> " + line for line in r["followup_body"].splitlines()) + "\n")
         md.append("<details><summary>Why this target, and the evidence</summary>\n")
         md.append(f"- Contact: {r['contact_name']}, {r['contact_title']}"
@@ -178,6 +187,7 @@ def _md(rows: list[dict], facts: list[list[dict]], request: str) -> str:
         if r["auto_fixed"]:
             md.append("- Already fixed by the reviewer:\n" + "\n".join(f"  - {f}" for f in r["auto_fixed"].split(" | ")))
         md.append("\n</details>\n")
+    md += [""] + [f"[{i}]: {u}" for i, u in enumerate(refs, 1)]
     return "\n".join(md)
 
 

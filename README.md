@@ -111,7 +111,9 @@ Each run writes to `outputs/<timestamp>/` (or `--out DIR`), updated as each targ
   - **Rows:** like an inbox: a red "Draft" marker, the recipient, label chips, the subject and a snippet. Hover to open, mark as sent or copy; check rows to mark several as sent at once (with undo).
   - **Reading a draft:** each one reads as a thread: the email with its legal footer, the LinkedIn note where relevant, and the follow-up as a collapsed reply with its send date. The Research side panel shows why this target, why now, the contact check and the dated notes with sources.
   - **Editing:** "Edit" opens a Gmail-style compose window. "Open in Gmail" (or LinkedIn, or the contact form) always uses your edited text. Edits and sent status are saved in your browser, and the sidebar gives you the exact `--mark-sent` command for the shared ledger.
-  - **Shortcuts:** Gmail-style: `j`/`k` move, `o` open, `u` back, `e` edit, `s` mark sent, `g` open in Gmail, `/` search. Dark mode and phone layouts work too.
+  - **Shortcuts:** Gmail-style: `j`/`k` move, `o` open, `u` back, `e` edit, `s` mark sent, `g` open in Gmail, `/` search, `?` for the full list. Marking a draft as sent moves you to the next one, like archiving in Gmail.
+  - **Blocked drafts:** these keep only a muted "Open anyway" button, under a banner saying what to fix.
+  - **Display:** dark mode and phone layouts work too.
 - `results.md`: the same content in Markdown.
 - `drafts/*.eml` and `*.followup.eml`: draft files that open in Mail, Outlook or Thunderbird.
 - `results.csv`: one row per target, ready rows first.

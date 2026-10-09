@@ -22,6 +22,11 @@ f.onload = function () {
         $("#sent").click();
         ok($("#progtxt").textContent === "1 of 4 ready sent", "mark as sent updates progress");
         ok($("#ledger").textContent.includes("--mark-sent") && $("#ledger").textContent.includes("Northfield Builders"), "ledger command lists the sent target");
+        ok($("#subject-h").textContent.includes("Tacoma"), "marking as sent advances to the next draft");
+        key(d, "?");
+        ok(!$("#keys").hidden, "? opens the shortcuts dialog");
+        key(d, "Escape");
+        ok($("#keys").hidden, "Escape closes the shortcuts dialog");
         $("#back").click();
         ok($$(".row").length === 3, "sent conversation leaves Drafts");
         $('[data-f="sent"]').click();
