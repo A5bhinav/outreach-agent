@@ -1,5 +1,7 @@
 # Example outputs (5-company demo)
 
+Produced by an earlier version of the tool (before the investor voice, recruiting mode and ready-to-send columns were added).
+
 Request: "find general contractors and construction firms that might want robotics for materials handling, mid-size, US" (`--n 5`)
 
 - `results.md` – readable drafts sorted by fit score, with the sourced research notes behind each email

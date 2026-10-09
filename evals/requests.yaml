@@ -1,0 +1,39 @@
+# Representative portfolio support requests. Run them with evals/run.py before and after a
+# change, then compare the scores (evals/score.py). Each entry: id, mode it should route to,
+# the request text, and the config to use (defaults to startup.yaml).
+- id: gc-robotics
+  expect_mode: companies
+  request: find general contractors and construction firms that might want robotics for materials handling, mid-size, US
+- id: 3pl-pilots
+  expect_mode: companies
+  request: find third-party logistics providers in Texas and Georgia running multiple warehouses that could pilot autonomous mobile robots
+- id: prefab-shops
+  expect_mode: companies
+  request: find construction companies that recently opened or expanded an offsite prefabrication facility in the US
+- id: cold-storage
+  expect_mode: companies
+  request: find cold-storage warehouse operators expanding capacity in the Midwest
+- id: integrators
+  expect_mode: companies
+  request: find warehouse automation system integrators that could resell or partner with an AMR startup
+- id: datacenter-builders
+  expect_mode: companies
+  request: find contractors building large data centers in the US who manage big laydown yards
+- id: eu-logistics
+  expect_mode: companies
+  request: find mid-size logistics companies in Germany and the Netherlands investing in warehouse automation
+- id: amr-systems-eng
+  expect_mode: people
+  request: find systems engineers who have deployed autonomous mobile robot fleets in warehouses
+- id: field-robotics-lead
+  expect_mode: people
+  request: find field deployment leads with experience rolling out robots on construction sites
+- id: safety-cert
+  expect_mode: people
+  request: find engineers with functional safety certification experience (ISO 3691-4) for mobile robots
+- id: fleet-software
+  expect_mode: people
+  request: find software engineers who have built multi-robot fleet management or traffic control systems
+- id: controls-eng
+  expect_mode: people
+  request: find controls engineers who have integrated robots with warehouse management systems

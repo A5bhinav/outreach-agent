@@ -1,6 +1,9 @@
-# Demo config. Replace every field with your real details before using drafts.
-# The writer may only use proof points listed here, so keep them true.
-company_name: "Example Robotics"   # placeholder
+# Portfolio company profile. Make one file per company and pass it with --config.
+# Replace every PLACEHOLDER with real details. Any email that still contains a
+# placeholder value is marked "not ready to send". The writer may only use proof
+# points listed here, so keep them true.
+company_name: "PLACEHOLDER: Example Robotics"
+founder_name: "PLACEHOLDER: Jordan Lee"
 pitch: >
   We build autonomous mobile robots that move pallets, carts and materials around
   warehouses and logistics yards. Our robots are already deployed in supply-chain
@@ -15,5 +18,13 @@ icp_notes: >
 proof_points:
   - "PLACEHOLDER: robots running in live warehouse deployments today"
   - "PLACEHOLDER: replace with a real metric, e.g. hours of manual hauling saved per week"
-sender_name: "Alex"                # placeholder
-ask: "a 15-minute intro call to see if a small pilot in your yard or prefab shop makes sense"
+# Who the emails come from. voice: investor = a warm intro from you on the startup's
+# behalf (the founder is mentioned in third person); founder = written as the founder.
+sender:
+  voice: investor
+  name: "PLACEHOLDER: Your Name"
+  title: "Partner"
+  firm: "PLACEHOLDER: Your Fund"
+  email: "PLACEHOLDER: you@yourfund.com"   # From: on the .eml drafts; send from the firm's own domain
+  # Required by CAN-SPAM in the footer of every email; emails are blocked until it's set.
+  firm_address: "PLACEHOLDER: 123 Main St, Suite 100, San Francisco, CA 94105"
