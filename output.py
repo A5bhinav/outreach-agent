@@ -199,6 +199,7 @@ def _html(rows: list[dict], targets: list[dict], request: str, outdir: Path, sta
             "run": outdir.resolve().name,
             "outdir": str(outdir.resolve()),
             "account": email if "@" in email else "",
+            "sender": clean(sender.get("name")),
             "from": f"{clean(sender.get('name'))} <{email}>" if "@" in email else "",
         },
         "rows": [{**r, "body": t["final"]["body"], "footer": t["final"].get("footer", ""),

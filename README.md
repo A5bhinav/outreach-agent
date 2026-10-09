@@ -8,7 +8,8 @@ each one, written as you, the investor. Each message comes with a follow-up and 
 LinkedIn note. Results land on a review page with a one-click action per target.
 **It never sends anything.** You review each message and send it yourself.
 
-![The review app: targets on the left, an editable draft in the middle, the evidence behind it on the right](docs/review-app.png)
+![The review inbox: drafts listed like an inbox](docs/review-inbox.png)
+![Reading a draft: the email, its follow-up, and the research behind it](docs/review-app.png)
 
 ## Quick start (no API key needed)
 
@@ -105,12 +106,12 @@ python main.py --opt-out jane@example.com      # or a domain: --opt-out example.
 
 Each run writes to `outputs/<timestamp>/` (or `--out DIR`), updated as each target finishes:
 
-- `results.html`: **the review app; open it in a browser.** It's a single offline file.
-  - **Left:** every target with its status (ready, needs review, sent), channel and the hook it opens with, plus filters and search.
-  - **Middle:** the draft, which you can edit. "Open in Gmail" (or LinkedIn, or the contact form) always uses your edited text, and the locked legal footer is added automatically. There are tabs for the follow-up and the LinkedIn note, plus copy and `.eml` download.
-  - **Right:** why this target and why now, with each criterion, the opening fact and whether it was found on its source page, the contact check, and the dated research notes with sources.
-  - **Tracking what you send:** mark messages as sent as you go. Edits and sent status are saved in your browser. The app then gives you the exact `--mark-sent` command, so the shared ledger knows what went out.
-  - **Shortcuts:** `↑`/`↓` move, `s` mark sent, `e` edit, `/` search, `g` open.
+- `results.html`: **the review inbox; open it in a browser.** It's a single offline file, laid out like Gmail's web inbox, which is where the drafts get sent from.
+  - **Folders:** Drafts (ready to send), Needs review, Sent and All. Channel labels (Email, Shared inbox, LinkedIn, Contact form) have counts, and "Review next draft" jumps straight to the next one.
+  - **Rows:** like an inbox: a red "Draft" marker, the recipient, label chips, the subject and a snippet. Hover to open, mark as sent or copy; check rows to mark several as sent at once (with undo).
+  - **Reading a draft:** each one reads as a thread: the email with its legal footer, the LinkedIn note where relevant, and the follow-up as a collapsed reply with its send date. The Research side panel shows why this target, why now, the contact check and the dated notes with sources.
+  - **Editing:** "Edit" opens a Gmail-style compose window. "Open in Gmail" (or LinkedIn, or the contact form) always uses your edited text. Edits and sent status are saved in your browser, and the sidebar gives you the exact `--mark-sent` command for the shared ledger.
+  - **Shortcuts:** Gmail-style: `j`/`k` move, `o` open, `u` back, `e` edit, `s` mark sent, `g` open in Gmail, `/` search. Dark mode and phone layouts work too.
 - `results.md`: the same content in Markdown.
 - `drafts/*.eml` and `*.followup.eml`: draft files that open in Mail, Outlook or Thunderbird.
 - `results.csv`: one row per target, ready rows first.

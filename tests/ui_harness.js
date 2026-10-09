@@ -1,39 +1,56 @@
-const log=[];const ok=(c,m)=>log.push((c?"PASS ":"FAIL ")+m);
-const f=document.getElementById("f");
-let phase=0;
-f.onload=function(){const w=f.contentWindow,d=f.contentDocument;
- setTimeout(()=>{
-  if(phase===0){
-   try{w.localStorage.clear()}catch(e){}
-   phase=1; w.location.reload(); return;
-  }
-  if(phase===1){
-   ok(d.querySelectorAll('.item').length===4,'4 targets listed');
-   const ta=d.getElementById('f-body'); ta.value=ta.value.replace('Congrats','Big congrats'); ta.dispatchEvent(new Event('input'));
-   ok(d.getElementById('act').href.includes('Big%20congrats'),'Gmail link uses edited text');
-   ok(d.getElementById('act').href.includes('Demo%20Plaza'),'Gmail link includes legal footer');
-   ok(d.getElementById('edited').classList.contains('show'),'edited indicator shows');
-   d.getElementById('sent').click();
-   ok(d.getElementById('progtxt').textContent==='1 of 4 ready sent','progress updates');
-   ok(d.getElementById('ledger').textContent.includes('--mark-sent')&&d.getElementById('ledger').textContent.includes('Northfield Builders'),'ledger command lists sent target');
-   d.querySelector('[data-f="sent"]').click();
-   ok(d.querySelectorAll('.item').length===1,'Sent filter shows 1');
-   d.querySelector('[data-f="all"]').click();
-   d.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown'}));
-   ok(d.querySelector('.head h1').textContent==='Harbor & Lane Contractors','arrow key moves selection');
-   d.querySelector('.tabs [data-t="followup"]').click();
-   ok(d.getElementById('act').href.includes('su=Re%3A'),'follow-up opens as a reply');
-   const q=d.getElementById('q'); q.value='redstone'; q.dispatchEvent(new Event('input'));
-   ok(d.querySelectorAll('.item').length===1,'search filters list');
-   phase=2; w.location.reload(); return;
-  }
-  if(phase===2){
-   ok(d.getElementById('progtxt').textContent==='1 of 4 ready sent','sent state persists across reload');
-   d.querySelector('.item[data-i="0"]').click();
-   ok(d.getElementById('f-body').value.includes('Big congrats'),'edit persists across reload');
-   d.getElementById('reset').click();
-   ok(!d.getElementById('f-body').value.includes('Big congrats'),'reset restores reviewed draft');
-   ok(!d.body.innerText.includes('undefined')&&!d.body.innerText.includes('NaN'),'no undefined/NaN rendered');
-   document.getElementById('out').textContent=log.join('\n'); document.title='DONE';
-  }
- },300);};
+const log = []; const ok = (c, m) => log.push((c ? "PASS " : "FAIL ") + m);
+const f = document.getElementById("f");
+const key = (d, k) => d.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true }));
+let phase = 0;
+f.onload = function () {
+  const w = f.contentWindow, d = f.contentDocument, $ = (s) => d.querySelector(s), $$ = (s) => d.querySelectorAll(s);
+  setTimeout(() => {
+    try {
+      if (phase === 0) { try { w.localStorage.clear(); } catch (e) {} phase = 1; w.location.reload(); return; }
+      if (phase === 1) {
+        ok($$(".row").length === 4, "drafts folder lists 4 conversations");
+        $$(".row")[0].click();
+        ok(!!$("#subject-h") && $("#subject-h").textContent.includes("Columbus"), "clicking a row opens the reading view");
+        $('[data-edit="email"]').click();
+        ok($("#compose").classList.contains("open"), "Edit opens the compose window");
+        const ta = $("#f-body"); ta.value = ta.value.replace("Congrats", "Big congrats"); ta.dispatchEvent(new Event("input"));
+        ok($("#c-send").href.includes("Big%20congrats") && $("#c-send").href.includes("Demo%20Plaza"), "compose send link uses edited text plus footer");
+        ok($("#act").href.includes("Big%20congrats"), "reading view action picks up the edit");
+        ok($("#edited").classList.contains("show"), "edit is saved");
+        key(d, "Escape");
+        ok(!$("#compose").classList.contains("open"), "Escape closes compose");
+        $("#sent").click();
+        ok($("#progtxt").textContent === "1 of 4 ready sent", "mark as sent updates progress");
+        ok($("#ledger").textContent.includes("--mark-sent") && $("#ledger").textContent.includes("Northfield Builders"), "ledger command lists the sent target");
+        $("#back").click();
+        ok($$(".row").length === 3, "sent conversation leaves Drafts");
+        $('[data-f="sent"]').click();
+        ok($$(".row").length === 1 && $$(".row.read").length === 1, "Sent folder shows it as read");
+        $('[data-f="drafts"]').click();
+        key(d, "j"); key(d, "o");
+        ok($("#subject-h").textContent.includes("Denver"), "j then o opens the next conversation");
+        $(".msg.collapsed").click();
+        ok($("#act-fu") && $("#act-fu").href.includes("su=Re%3A"), "follow-up expands and opens as a reply");
+        key(d, "u");
+        const q = $("#q"); q.value = "redstone"; q.dispatchEvent(new Event("input"));
+        ok($$(".row").length === 1, "search filters conversations");
+        phase = 2; w.location.reload(); return;
+      }
+      if (phase === 2) {
+        ok($("#progtxt").textContent === "1 of 4 ready sent", "sent state persists across reload");
+        $('[data-f="all"]').click();
+        d.querySelector('.row[data-i="0"]').click();
+        ok($("#body-email").textContent.includes("Big congrats"), "edit persists across reload");
+        $('[data-edit="email"]').click(); $("#reset").click();
+        ok(!$("#body-email").textContent.includes("Big congrats"), "discard restores the reviewed draft");
+        $("#back").click(); $('[data-f="drafts"]').click();
+        $("#ckall").click(); $("#bulksent").click();
+        ok($("#progtxt").textContent === "4 of 4 ready sent", "bulk select marks all as sent");
+        $("#snackundo").click();
+        ok($("#progtxt").textContent === "1 of 4 ready sent", "undo restores the previous state");
+        ok(!d.body.innerText.includes("undefined") && !d.body.innerText.includes("NaN"), "no undefined/NaN rendered");
+      }
+    } catch (e) { ok(false, "exception: " + e.message); }
+    document.getElementById("out").textContent = log.join("\n"); document.title = "DONE";
+  }, 300);
+};

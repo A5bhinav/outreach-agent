@@ -3,196 +3,244 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Outreach review</title>
+<title>Outreach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* Layout and tokens follow Gmail's Material 3 web inbox, so the review step feels like the
+   inbox the drafts will be sent from. */
 :root {
-  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #fafbfc; --ink: #0f172a; --ink-2: #475569; --ink-3: #8a94a6;
-  --line: #e6e8ec; --line-2: #eef0f3; --accent: #4f46e5; --accent-2: #eef0ff; --accent-ink: #ffffff;
-  --ok: #157f3d; --ok-bg: #e9f8ef; --warn: #a15c07; --warn-bg: #fff6e5; --bad: #b42318; --bad-bg: #fdecea;
-  --chip: #f1f3f6; --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
-  --radius: 10px; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bg: #f6f8fc; --surface: #ffffff; --read: #f2f6fc; --line: #e0e3e7; --line-2: #eceff1;
+  --ink: #1f1f1f; --ink-2: #444746; --ink-3: #5e5e5e; --ink-4: #747775;
+  --primary: #0b57d0; --primary-ink: #ffffff; --nav-sel: #d3e3fd; --nav-sel-ink: #001d35; --fab: #c2e7ff; --fab-ink: #001d35;
+  --search: #e9eef6; --checked: #c2dbff; --draft: #d93025;
+  --warn-bg: #fef7e0; --warn-ink: #7a4f01; --bad-bg: #fce8e6; --bad-ink: #a50e0e; --ok-bg: #e6f4ea; --ok-ink: #0d652d;
+  --row-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+  --pop-shadow: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px rgba(60,64,67,.3);
+  --sans: "Google Sans Text", "Google Sans", Roboto, Arial, sans-serif; --display: "Google Sans", Roboto, Arial, sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0c0e13; --panel: #13161d; --panel-2: #171b23; --ink: #e7e9ef; --ink-2: #a5aec0; --ink-3: #6c7588;
-    --line: #232836; --line-2: #1c202b; --accent: #8b93ff; --accent-2: #1e2140; --accent-ink: #0c0e13;
-    --ok: #4ade80; --ok-bg: rgba(74,222,128,.1); --warn: #fbbf24; --warn-bg: rgba(251,191,36,.1);
-    --bad: #f87171; --bad-bg: rgba(248,113,113,.1); --chip: #1b1f2a; --shadow: none;
-  }
-}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111111; --surface: #1f1f1f; --read: #262626; --line: #3c4043; --line-2: #2e3134;
+  --ink: #e3e3e3; --ink-2: #c4c7c5; --ink-3: #a8abaf; --ink-4: #8e918f;
+  --primary: #a8c7fa; --primary-ink: #062e6f; --nav-sel: #004a77; --nav-sel-ink: #c2e7ff; --fab: #004a77; --fab-ink: #c2e7ff;
+  --search: #28292a; --checked: #003a5c; --draft: #f28b82;
+  --warn-bg: #3d2f0a; --warn-ink: #fdd663; --bad-bg: #3c1f1d; --bad-ink: #f6aea9; --ok-bg: #0f3d22; --ok-ink: #81c995;
+  --row-shadow: inset 0 0 0 1px #3c4043; --pop-shadow: 0 4px 12px rgba(0,0,0,.6);
+} }
 :root[data-theme="dark"] {
-  --bg: #0c0e13; --panel: #13161d; --panel-2: #171b23; --ink: #e7e9ef; --ink-2: #a5aec0; --ink-3: #6c7588;
-  --line: #232836; --line-2: #1c202b; --accent: #8b93ff; --accent-2: #1e2140; --accent-ink: #0c0e13;
-  --ok: #4ade80; --ok-bg: rgba(74,222,128,.1); --warn: #fbbf24; --warn-bg: rgba(251,191,36,.1);
-  --bad: #f87171; --bad-bg: rgba(248,113,113,.1); --chip: #1b1f2a; --shadow: none;
+  --bg: #111111; --surface: #1f1f1f; --read: #262626; --line: #3c4043; --line-2: #2e3134;
+  --ink: #e3e3e3; --ink-2: #c4c7c5; --ink-3: #a8abaf; --ink-4: #8e918f;
+  --primary: #a8c7fa; --primary-ink: #062e6f; --nav-sel: #004a77; --nav-sel-ink: #c2e7ff; --fab: #004a77; --fab-ink: #c2e7ff;
+  --search: #28292a; --checked: #003a5c; --draft: #f28b82;
+  --warn-bg: #3d2f0a; --warn-ink: #fdd663; --bad-bg: #3c1f1d; --bad-ink: #f6aea9; --ok-bg: #0f3d22; --ok-ink: #81c995;
+  --row-shadow: inset 0 0 0 1px #3c4043; --pop-shadow: 0 4px 12px rgba(0,0,0,.6);
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
-body { margin: 0; overflow-x: hidden; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/20px var(--sans); overflow: hidden; }
+a { color: var(--primary); text-decoration: none; }
 button, input, textarea { font: inherit; color: inherit; }
-svg { flex: none; }
+svg.i { width: 20px; height: 20px; fill: currentColor; flex: none; }
+.ib { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; display: inline-grid; place-items: center; cursor: pointer; color: var(--ink-2); flex: none; }
+.ib:hover { background: rgba(68,71,70,.08); }
+.ib.sm { width: 32px; height: 32px; } .ib.sm svg.i { width: 18px; height: 18px; }
+.ib[disabled] { opacity: .38; pointer-events: none; }
 
-/* ---------- top bar ---------- */
-.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: 9px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
-.brand .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
-.run { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-.run .req { font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.run .meta { display: flex; gap: 6px; flex-wrap: wrap; color: var(--ink-3); font-size: 12px; }
-.progress { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 12.5px; white-space: nowrap; }
-.bar { width: 120px; height: 6px; border-radius: 99px; background: var(--chip); overflow: hidden; }
-.bar > i { display: block; height: 100%; background: var(--ok); border-radius: 99px; transition: width .25s; }
-.iconbtn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; color: var(--ink-2); }
-.iconbtn:hover { background: var(--chip); }
+/* ---------- header ---------- */
+header { height: 64px; display: flex; align-items: center; padding: 8px 8px 8px 16px; gap: 4px; }
+.logo { display: flex; align-items: center; gap: 8px; width: 222px; padding-left: 4px; }
+.logo .mk { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4285f4, #0b57d0); display: grid; place-items: center; }
+.logo .mk svg { width: 18px; height: 18px; fill: #fff; }
+.logo span { font: 22px/24px var(--display); color: var(--ink-2); letter-spacing: -.01em; }
+.search { flex: 1; min-width: 0; max-width: 720px; height: 48px; border-radius: 24px; background: var(--search); display: flex; align-items: center; padding: 0 4px; }
+.search:focus-within { background: var(--surface); box-shadow: 0 1px 1px 0 rgba(65,69,73,.3), 0 1px 3px 1px rgba(65,69,73,.15); }
+.search input { flex: 1; border: 0; background: transparent; outline: none; font-size: 16px; padding: 0 8px; min-width: 0; }
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 4px; padding-right: 8px; }
+.demo-chip { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-ink); white-space: nowrap; }
+.me { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 500; margin-left: 4px; }
 
-/* ---------- layout ---------- */
-.app { display: grid; grid-template-columns: 340px minmax(0, 1fr) 360px; height: calc(100vh - 57px); }
-.list { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
-.main { overflow: auto; padding: 22px 26px 40px; min-width: 0; }
-.side { border-left: 1px solid var(--line); background: var(--panel-2); overflow: auto; padding: 20px 18px 40px; }
+/* ---------- shell ---------- */
+.shell { display: flex; height: calc(100vh - 64px); }
+nav { width: 256px; flex: none; overflow-y: auto; padding-right: 16px; }
+.fab { display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 24px 0 16px; margin: 8px 0 16px 8px; border: 0; border-radius: 16px; background: var(--fab); color: var(--fab-ink); font: 500 14px var(--display); cursor: pointer; box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); }
+.fab:hover { box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15); }
+.fab[disabled] { opacity: .5; box-shadow: none; cursor: default; }
+.nv { display: flex; align-items: center; height: 32px; padding: 0 12px 0 26px; border-radius: 0 16px 16px 0; cursor: pointer; color: var(--ink); gap: 18px; user-select: none; }
+.nv:hover { background: rgba(31,31,31,.06); }
+.nv[aria-current="true"] { background: var(--nav-sel); color: var(--nav-sel-ink); font-weight: 700; }
+.nv .lbl { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nv .cnt { font-size: 12px; letter-spacing: .3px; }
+.navh { font: 500 16px/24px var(--display); padding: 16px 0 8px 26px; color: var(--ink); }
+.runinfo { margin: 20px 0 0 26px; font-size: 12px; line-height: 18px; color: var(--ink-3); }
+.runinfo b { color: var(--ink-2); font-weight: 500; }
+.meter { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin: 6px 0 4px; }
+.meter i { display: block; height: 100%; background: var(--primary); }
+.ledger { display: none; margin: 14px 0 0 26px; padding: 12px; border-radius: 12px; background: var(--surface); font-size: 12px; line-height: 17px; color: var(--ink-2); }
+.ledger.show { display: block; }
+.ledger code { display: block; margin: 8px 0; padding: 8px; border-radius: 6px; background: var(--bg); font: 11px/15px ui-monospace, Menlo, monospace; word-break: break-all; color: var(--ink); }
+.txtbtn { border: 0; background: none; color: var(--primary); font-weight: 500; cursor: pointer; padding: 6px 8px; margin-left: -8px; border-radius: 4px; }
+.txtbtn:hover { background: rgba(11,87,208,.08); }
+
+.split { flex: 1; min-width: 0; display: flex; }
+.main { flex: 1; min-width: 0; background: var(--surface); border-radius: 16px; margin-bottom: 16px; display: flex; flex-direction: column; overflow: hidden; }
+.rail { width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 8px; }
+.rail .ib[aria-pressed="true"] { background: var(--nav-sel); color: var(--nav-sel-ink); }
+.panel { width: 0; overflow: hidden; flex: none; }
+.panel.open { width: 336px; padding-left: 16px; }
+.panel .pin { width: 320px; height: calc(100% - 16px); background: var(--surface); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ---------- toolbar ---------- */
+.tb { height: 48px; flex: none; display: flex; align-items: center; padding: 0 8px 0 10px; gap: 2px; border-bottom: 1px solid var(--line-2); }
+.tb .grow { flex: 1; }
+.tb .pg { font-size: 12px; color: var(--ink-3); padding: 0 8px; white-space: nowrap; }
+.sep { width: 1px; height: 20px; background: var(--line); margin: 0 6px; }
 
 /* ---------- list ---------- */
-.filters { padding: 12px 12px 8px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--line-2); }
-.seg { display: flex; background: var(--chip); border-radius: 8px; padding: 3px; gap: 2px; }
-.seg button { flex: 1; border: 0; background: transparent; padding: 5px 6px; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 12.5px; font-weight: 550; white-space: nowrap; }
-.seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
-.seg .n { color: var(--ink-3); font-weight: 500; margin-left: 3px; }
-.search { position: relative; }
-.search input { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); outline: none; }
-.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-2); }
-.search svg { position: absolute; left: 9px; top: 9px; color: var(--ink-3); }
-.items { overflow: auto; flex: 1; padding: 6px; }
-.item { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; padding: 10px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; }
-.item:hover { background: var(--panel-2); }
-.item[aria-selected="true"] { background: var(--accent-2); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
-.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 650; font-size: 13px; color: #fff; position: relative; }
-.avatar .done { position: absolute; right: -2px; bottom: -2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ok); border: 2px solid var(--panel); display: grid; place-items: center; }
-.item .row1 { display: flex; align-items: center; gap: 6px; }
-.item .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-.item .who { color: var(--ink-2); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item .hook { color: var(--ink-3); font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
-.item .tags { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
-.empty { padding: 30px 16px; text-align: center; color: var(--ink-3); }
-.ledger { border-top: 1px solid var(--line); padding: 12px; font-size: 12.5px; color: var(--ink-2); display: none; }
-.ledger.show { display: block; }
-.ledger code { display: block; margin: 6px 0 8px; padding: 8px; background: var(--chip); border-radius: 6px; font: 11.5px/1.45 var(--mono); word-break: break-all; color: var(--ink); }
+.list { flex: 1; overflow-y: auto; }
+.row { display: flex; align-items: center; height: 40px; padding: 0 16px 0 10px; cursor: pointer; position: relative; box-shadow: inset 0 -1px 0 0 var(--line-2); background: var(--surface); }
+.row.read { background: var(--read); }
+.row.checked { background: var(--checked); }
+.row:hover { box-shadow: var(--row-shadow); z-index: 1; }
+.row.cursor::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); }
+.row .ck, .row .st { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-4); flex: none; border: 0; background: none; cursor: pointer; padding: 0; }
+.row .ck:hover, .row .st:hover { background: rgba(68,71,70,.1); color: var(--ink); }
+.row .st.on { color: #f4b400; }
+.row .who { width: 220px; flex: none; padding: 0 16px 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .who .co { font-weight: 400; color: var(--ink-3); }
+.row .draft { color: var(--draft); }
+.row .cnt-sub { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+.row .subj { flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+.row .snip { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.row.unread .who, .row.unread .subj, .row.unread .date { font-weight: 700; color: var(--ink); }
+.row .date { width: 72px; flex: none; text-align: right; font-size: 12px; color: var(--ink-3); }
+.row .acts { display: none; position: absolute; right: 8px; top: 4px; background: inherit; padding-left: 8px; }
+.row:hover .acts { display: flex; } .row:hover .date { visibility: hidden; }
+.lb { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; font-size: 12px; font-weight: 500; flex: none; line-height: 20px; }
+.lb.email { background: #e8f0fe; color: #174ea6; } .lb.shared { background: #e6f4ea; color: #0d652d; }
+.lb.li { background: #e1ecf7; color: #0a66c2; } .lb.form { background: #f3e8fd; color: #681da8; }
+.lb.review { background: var(--bad-bg); color: var(--bad-ink); } .lb.sentlb { background: var(--ok-bg); color: var(--ok-ink); } .lb.plain { background: var(--line-2); color: var(--ink-2); }
+:root[data-theme="dark"] .lb.email, :root[data-theme="dark"] .lb.shared, :root[data-theme="dark"] .lb.li, :root[data-theme="dark"] .lb.form { filter: brightness(.7) saturate(1.3); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .lb.email, :root:not([data-theme="light"]) .lb.shared, :root:not([data-theme="light"]) .lb.li, :root:not([data-theme="light"]) .lb.form { filter: brightness(.7) saturate(1.3); } }
+.empty { padding: 64px 24px; text-align: center; color: var(--ink-3); }
+.empty b { display: block; font: 400 22px var(--display); color: var(--ink-2); margin-bottom: 6px; }
 
-/* ---------- chips & pills ---------- */
-.chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 550; background: var(--chip); color: var(--ink-2); white-space: nowrap; }
-.chip.ok { background: var(--ok-bg); color: var(--ok); }
-.chip.warn { background: var(--warn-bg); color: var(--warn); }
-.chip.bad { background: var(--bad-bg); color: var(--bad); }
-.chip.accent { background: var(--accent-2); color: var(--accent); }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+/* ---------- reading view ---------- */
+.read-view { flex: 1; overflow-y: auto; padding: 0 0 48px; }
+.subject { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 20px 16px 8px 72px; }
+.subject h2 { margin: 0; font: 400 22px/28px var(--display); color: var(--ink); }
+.banner { margin: 8px 16px 8px 72px; padding: 12px 16px; border-radius: 8px; display: flex; gap: 12px; font-size: 14px; }
+.banner.warn { background: var(--warn-bg); color: var(--warn-ink); } .banner.bad { background: var(--bad-bg); color: var(--bad-ink); }
+.banner.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.banner ul { margin: 4px 0 0; padding-left: 18px; } .banner b { font-weight: 500; }
+.msg { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 0 16px; padding: 16px 16px 8px 16px; }
+.msg + .msg { border-top: 1px solid var(--line-2); }
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 500 16px var(--display); }
+.mh { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.mh .from { flex: 1; min-width: 0; }
+.mh .from b { font-weight: 700; } .mh .addr { color: var(--ink-3); font-size: 12px; }
+.mh .to { color: var(--ink-3); font-size: 12px; }
+.mh .when { font-size: 12px; color: var(--ink-3); white-space: nowrap; padding-top: 2px; }
+.mbody { white-space: pre-wrap; font: 14px/20px Arial, var(--sans); color: var(--ink); padding: 14px 0 6px; overflow-wrap: anywhere; max-width: 760px; }
+.mfoot { white-space: pre-wrap; font: 12px/18px Arial, var(--sans); color: var(--ink-4); border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; max-width: 760px; }
+.msg.collapsed .mbody, .msg.collapsed .mfoot, .msg.collapsed .pills, .msg.collapsed .meta-note { display: none; }
+.msg.collapsed { cursor: pointer; } .msg.collapsed .snipline { display: block; }
+.snipline { display: none; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pills { display: flex; gap: 12px; flex-wrap: wrap; padding: 12px 0 8px; }
+.pill { height: 36px; padding: 0 20px 0 16px; border-radius: 18px; border: 1px solid var(--ink-4); background: transparent; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--ink-2); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.pill:hover { background: rgba(68,71,70,.08); }
+.pill.fill { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.pill.fill:hover { filter: brightness(1.08); }
+.pill svg.i { width: 18px; height: 18px; }
+.meta-note { font-size: 12px; color: var(--ink-4); }
 
-/* ---------- detail ---------- */
-.head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-.head .avatar { width: 46px; height: 46px; font-size: 16px; }
-.head h1 { margin: 0; font-size: 20px; letter-spacing: -.015em; line-height: 1.25; }
-.head .sub { color: var(--ink-2); margin-top: 2px; }
-.head .sub a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); }
-.head .grow { flex: 1; min-width: 0; }
-.btn.back { display: none; }
-.banner { display: flex; gap: 10px; padding: 11px 14px; border-radius: var(--radius); margin-bottom: 16px; font-size: 13.5px; }
-.banner.ok { background: var(--ok-bg); color: var(--ok); }
-.banner.warn { background: var(--warn-bg); color: var(--warn); }
-.banner.bad { background: var(--bad-bg); color: var(--bad); }
-.banner ul { margin: 4px 0 0; padding-left: 18px; color: var(--ink); }
-.banner b { display: block; }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: -1px; }
-.tabs button { border: 0; background: none; padding: 9px 12px; cursor: pointer; color: var(--ink-2); font-weight: 550; border-bottom: 2px solid transparent; display: flex; gap: 6px; align-items: center; }
-.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-.composer { background: var(--panel); border: 1px solid var(--line); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); }
-.field { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; padding: 9px 16px; border-bottom: 1px solid var(--line-2); }
-.field label { color: var(--ink-3); font-size: 12.5px; }
-.field .val { display: flex; gap: 8px; align-items: center; min-width: 0; flex-wrap: wrap; }
-.field input { border: 0; outline: none; background: transparent; width: 100%; font-weight: 550; padding: 2px 0; }
-.body textarea { display: block; width: 100%; border: 0; outline: none; resize: none; background: transparent; padding: 16px; line-height: 1.6; font-size: 14.5px; min-height: 160px; overflow: hidden; }
-.footer-lock { margin: 0 16px 14px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; color: var(--ink-3); font-size: 12.5px; white-space: pre-wrap; }
-.footer-lock .t { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink-2); margin-bottom: 3px; }
-.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--line-2); background: var(--panel-2); border-radius: 0 0 var(--radius) var(--radius); }
-.toolbar .spacer { flex: 1; }
-.count { font-size: 12px; color: var(--ink-3); }
-.count.ok { color: var(--ok); } .count.warn { color: var(--warn); }
-.edited { font-size: 12px; color: var(--accent); display: none; align-items: center; gap: 6px; }
-.edited.show { display: inline-flex; }
-.edited button { border: 0; background: none; color: var(--ink-3); cursor: pointer; text-decoration: underline; padding: 0; font-size: 12px; }
-.btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-weight: 550; font-size: 13px; white-space: nowrap; text-decoration: none !important; color: var(--ink); }
-.btn:hover { background: var(--chip); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.primary:hover { filter: brightness(1.07); }
-.btn.sent { background: var(--ok-bg); border-color: transparent; color: var(--ok); }
-.btn[disabled] { opacity: .45; pointer-events: none; }
-.note { margin-top: 10px; color: var(--ink-3); font-size: 12.5px; }
-kbd { font: 11px var(--mono); padding: 1px 5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--panel); color: var(--ink-2); }
+/* ---------- side panel ---------- */
+.ph { height: 56px; display: flex; align-items: center; padding: 0 8px 0 20px; border-bottom: 1px solid var(--line-2); flex: none; }
+.ph span { flex: 1; text-transform: uppercase; font: 500 12px var(--sans); letter-spacing: .8px; color: var(--ink-3); }
+.pb { overflow-y: auto; padding: 4px 20px 24px; }
+.sec { padding: 16px 0; border-bottom: 1px solid var(--line-2); }
+.sec:last-child { border-bottom: 0; }
+.sec h3 { margin: 0 0 10px; font: 500 14px var(--display); color: var(--ink); }
+.score { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; } .score b { font: 400 28px var(--display); }
+.score span { color: var(--ink-3); font-size: 13px; }
+.crit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; }
+.crit li { display: flex; gap: 8px; }
+.crit svg.i { width: 18px; height: 18px; }
+.crit .yes { color: #188038; } .crit .no { color: #d93025; } .crit .unclear { color: var(--ink-4); }
+.kv { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px 8px; font-size: 13px; line-height: 18px; margin: 0; }
+.kv dt { color: var(--ink-3); } .kv dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.facts { list-style: none; margin: 0; padding: 0; font-size: 13px; line-height: 18px; }
+.facts li { padding: 8px 0; } .facts li + li { border-top: 1px solid var(--line-2); }
+.facts .m { display: flex; gap: 8px; align-items: center; margin-top: 4px; font-size: 12px; color: var(--ink-3); flex-wrap: wrap; }
+.tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 500; background: var(--line-2); color: var(--ink-2); }
+.tag.ok { background: var(--ok-bg); color: var(--ok-ink); } .tag.bad { background: var(--bad-bg); color: var(--bad-ink); } .tag.blue { background: var(--nav-sel); color: var(--nav-sel-ink); }
+.inline-panel { display: none; }
 
-/* ---------- evidence ---------- */
-.side h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin: 22px 0 10px; font-weight: 650; }
-.side h2:first-child { margin-top: 2px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
-.fit { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.ring { width: 44px; height: 44px; }
-.fit b { font-size: 15px; } .fit span { color: var(--ink-3); font-size: 12.5px; display: block; }
-.crit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.crit li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 13px; }
-.crit .ic { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
-.ic.yes { background: var(--ok-bg); color: var(--ok); } .ic.no { background: var(--bad-bg); color: var(--bad); } .ic.unclear { background: var(--chip); color: var(--ink-3); }
-.kv { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 6px 10px; font-size: 13px; }
-.kv dt { color: var(--ink-3); } .kv dd { margin: 0; min-width: 0; overflow-wrap: break-word; word-break: break-word; }
-.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.facts li { padding: 9px 0; border-bottom: 1px solid var(--line-2); font-size: 13px; }
-.facts li:last-child { border-bottom: 0; padding-bottom: 0; } .facts li:first-child { padding-top: 0; }
-.facts .src { display: flex; gap: 6px; align-items: center; margin-top: 4px; font-size: 12px; color: var(--ink-3); }
-.facts li.used { position: relative; }
-.facts li.used::before { content: ""; position: absolute; left: -14px; top: 2px; bottom: 11px; width: 3px; border-radius: 3px; background: var(--accent); }
-details.fixed { margin-top: 12px; font-size: 12.5px; color: var(--ink-2); }
-details.fixed summary { cursor: pointer; color: var(--ink-3); }
-details.fixed ul { padding-left: 18px; margin: 6px 0 0; }
+/* ---------- compose ---------- */
+.compose { position: fixed; right: 80px; bottom: 0; width: 560px; max-height: calc(100vh - 80px); background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: var(--pop-shadow); display: none; flex-direction: column; z-index: 20; }
+.compose.open { display: flex; }
+.ch { height: 40px; flex: none; display: flex; align-items: center; padding: 0 4px 0 16px; background: var(--read); border-radius: 16px 16px 0 0; font-weight: 500; }
+.ch span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: 0 16px; border-bottom: 1px solid var(--line); color: var(--ink-3); }
+.cf input { flex: 1; border: 0; outline: none; background: transparent; color: var(--ink); padding: 8px 0; }
+.cf .rcp { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cb { flex: 1; overflow-y: auto; padding: 8px 16px; min-height: 220px; }
+.cb textarea { width: 100%; border: 0; outline: none; resize: none; background: transparent; font: 14px/20px Arial, var(--sans); min-height: 200px; overflow: hidden; display: block; }
+.cb .mfoot { margin-top: 4px; }
+.cbar { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 16px; }
+.send { height: 36px; padding: 0 24px 0 18px; border-radius: 18px; border: 0; background: var(--primary); color: var(--primary-ink); font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.send:hover { box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); }
+.send[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.cbar .grow { flex: 1; }
+.wc { font-size: 12px; color: var(--ink-3); }
+.wc.off { color: var(--draft); }
+.edited { display: none; font-size: 12px; color: var(--ink-3); } .edited.show { display: inline; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--panel); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: .2s; pointer-events: none; z-index: 10; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.keys { color: var(--ink-3); font-size: 12px; display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.snack { position: fixed; left: 24px; bottom: 24px; background: #303030; color: #f2f2f2; padding: 14px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px rgba(0,0,0,.14); transform: translateY(80px); opacity: 0; transition: .2s; z-index: 30; display: flex; gap: 24px; align-items: center; }
+.snack.show { transform: none; opacity: 1; }
+.snack button { border: 0; background: none; color: #a8c7fa; font-weight: 500; cursor: pointer; padding: 0; }
+kbd { font: 11px ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; color: var(--ink-3); }
 
 /* ---------- responsive ---------- */
-@media (max-width: 1240px) {
-  .app { grid-template-columns: 320px minmax(0, 1fr); }
-  .side { display: none; }
-  .main .side-inline { display: block; }
-}
-.side-inline { display: none; margin-top: 26px; }
+@media (max-width: 1180px) { .panel, .rail { display: none; } .main { margin-right: 16px; } .inline-panel { display: block; margin: 8px 16px 0 72px; border-top: 1px solid var(--line-2); } }
 @media (max-width: 860px) {
-  .top { padding: 10px 14px; gap: 10px; } .progress, .run .meta, .brand-name { display: none; }
-  .run .req { font-size: 13px; }
-  .app { display: block; height: auto; }
-  .list { border-right: 0; min-height: calc(100vh - 57px); }
-  .main { display: none; padding: 16px; }
-  body.detail .list { display: none; } body.detail .main { display: block; }
-  .btn.back { display: inline-flex; margin-bottom: 12px; }
-  .field { grid-template-columns: 60px minmax(0, 1fr); padding: 9px 12px; }
+  body { overflow: auto; }
+  header { padding: 8px; } .logo { width: auto; } .logo span, .demo-chip, .me { display: none; }
+  nav { position: fixed; z-index: 15; top: 0; bottom: 0; left: 0; background: var(--bg); transform: translateX(-100%); transition: .2s; box-shadow: var(--pop-shadow); padding-top: 8px; }
+  body.drawer nav { transform: none; }
+  .shell { height: auto; } .main { margin: 0 8px 8px; min-height: calc(100vh - 72px); }
+  .row { height: auto; padding: 10px 44px 10px 12px; align-items: flex-start; flex-wrap: wrap; }
+  .row .ck { display: none; } .row .who { width: auto; flex: 1; padding: 0 8px 0 0; } .row .date { width: auto; }
+  .row .cnt-sub { flex-basis: 100%; order: 3; display: block; white-space: normal; }
+  .row .cnt-sub .lb { margin-right: 4px; } .row .subj { max-width: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .snip { display: block; white-space: nowrap; } .row .snip .dash { display: none; }
+  .row .st { position: absolute; right: 6px; top: 6px; }
+  .row .acts { display: none !important; } .row:hover .date { visibility: visible; }
+  .subject { padding-left: 16px; } .banner, .inline-panel { margin-left: 16px; }
+  .compose { right: 0; left: 0; width: auto; top: 0; max-height: none; border-radius: 0; }
+  .ch { border-radius: 0; }
+  .tb .kbdhelp { display: none; }
 }
 </style>
 </head>
 <body>
-<header class="top">
-  <div class="brand"><span class="mark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span><span class="brand-name">Outreach</span></div>
-  <div class="run"><div class="req" id="req"></div><div class="meta" id="meta"></div></div>
-  <div class="progress"><span id="progtxt"></span><div class="bar"><i id="progbar"></i></div></div>
-  <button class="iconbtn" id="theme" title="Toggle theme" aria-label="Toggle theme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+<header>
+  <button class="ib" id="menu" aria-label="Main menu"><svg class="i" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+  <div class="logo"><div class="mk"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div><span>Outreach</span></div>
+  <label class="search"><span class="ib" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span><input id="q" placeholder="Search drafts" aria-label="Search drafts"><button class="ib sm" id="qclear" aria-label="Clear search" style="visibility:hidden"><svg class="i" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></label>
+  <div class="hdr-right"><span class="demo-chip" id="demochip" hidden>Demo · fictional data</span>
+    <button class="ib" id="theme" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="i" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
+    <div class="me" id="me"></div></div>
 </header>
-<div class="app">
-  <aside class="list">
-    <div class="filters">
-      <div class="seg" role="group" aria-label="Filter" id="seg"></div>
-      <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search targets, contacts, facts" aria-label="Search"></div>
-    </div>
-    <div class="items" id="items" role="listbox" aria-label="Targets"></div>
-    <div class="ledger" id="ledger"></div>
-  </aside>
-  <main class="main" id="main"></main>
-  <aside class="side" id="side"></aside>
+<div class="shell">
+  <nav id="nav"></nav>
+  <div class="split">
+    <section class="main" id="main"></section>
+    <div class="panel" id="panel"><div class="pin"><div class="ph"><span>Research</span><button class="ib sm" id="pclose" aria-label="Close panel"><svg class="i" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div><div class="pb" id="pbody"></div></div></div>
+    <div class="rail"><button class="ib" id="railbtn" aria-label="Research" title="Research"><svg class="i" viewBox="0 0 24 24"><path d="M7 9H2V7h5v2zm0 3H2v2h5v-2zm13.59 7l-3.83-3.83c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75L22 17.59 20.59 19zM17 11c0-1.65-1.35-3-3-3s-3 1.35-3 3 1.35 3 3 3 3-1.35 3-3zM2 19h10v-2H2v2z"/></svg></button></div>
+  </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="compose" id="compose" role="dialog" aria-label="Edit draft"></div>
+<div class="snack" id="snack"><span id="snacktxt"></span><button id="snackundo" hidden>Undo</button></div>
 <script id="data" type="application/json">/*__DATA__*/</script>
 <script>
 (() => {
@@ -203,282 +251,329 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(KEY + ":" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(KEY + ":" + k, JSON.stringify(v)); } catch (e) {} },
 };
-const state = { filter: store.get("filter", "all"), q: "", sel: 0, tab: {}, sent: store.get("sent", {}), edits: store.get("edits", {}) };
+const S = { folder: store.get("folder", "drafts"), q: "", open: null, cursor: 0, checked: new Set(), panel: store.get("panel", true),
+            sent: store.get("sent", {}), starred: store.get("starred", {}), edits: store.get("edits", {}), compose: null, expandFU: false };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return u; } };
 const words = (s) => (s.trim().match(/\S+/g) || []).length;
-const COLORS = ["#4f46e5", "#0891b2", "#c2410c", "#7c3aed", "#15803d", "#be185d", "#0369a1", "#a16207"];
-const color = (s) => COLORS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
-const initials = (s) => s.replace(/[^A-Za-z0-9 &]/g, "").split(/\s+/).filter((w) => w && w !== "&").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const PAL = ["#1a73e8", "#e8710a", "#188038", "#a142f4", "#d93025", "#007b83", "#c26401", "#5f6368"];
+const colorOf = (s) => PAL[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % PAL.length];
+const ini = (s) => (s.replace(/[^A-Za-z ]/g, "").trim()[0] || "?").toUpperCase();
+const fmt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }); } catch (e) { return iso; } };
 
-const ICON = {
-  mail: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-  inbox: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>',
-  li: '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.84-2.05 3.79-2.05C20.6 8.65 21 11.2 21 14.5V21h-4v-5.8c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z"/></svg>',
-  form: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
-  ext: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg>',
-  copy: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
-  dl: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg>',
-  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m5 12 5 5 9-10"/></svg>',
-  lock: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
-  warn: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18h.01"/></svg>',
-  ok: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>',
-  back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18 9 12l6-6"/></svg>',
+const P = {
+  edit: "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+  drafts: "M21.99 8c0-.72-.37-1.35-.94-1.7L12 1 2.95 6.3C2.38 6.65 2 7.28 2 8v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2l-.01-10zM12 13L3.74 7.84 12 3l8.26 4.84L12 13z",
+  review: "M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z",
+  send: "M2.01 21L23 12 2.01 3 2 10l15 2-15 2z",
+  all: "M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
+  star: "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z",
+  starO: "M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z",
+  label: "M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z",
+  back: "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
+  copy: "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
+  dl: "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z",
+  done: "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
+  close: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+  min: "M6 19h12v2H6z",
+  box: "M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z",
+  boxOn: "M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
+  left: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z", right: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z",
+  trash: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
+  yes: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z",
+  no: "M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z",
+  unclear: "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z",
+  sched: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z",
+  note: "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z",
+  li: "M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z",
 };
-const channelIcon = (ch) => ch === "LinkedIn note" ? ICON.li : ch === "contact form" ? ICON.form : ch.includes("shared") ? ICON.inbox : ICON.mail;
-const channelLabel = (ch) => ({ "email": "Email", "email (shared inbox)": "Shared inbox", "LinkedIn note": "LinkedIn", "contact form": "Contact form", "none": "No channel" }[ch] || ch);
+const I = (n, extra = "", cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" ${extra}><path d="${P[n]}"/></svg>`;
+
+// ---------- model ----------
+const isSent = (r) => !!S.sent[r.target];
 const isReady = (r) => r.status === "ready";
-const isSent = (r) => !!state.sent[r.target];
-const bucket = (r) => isSent(r) ? "sent" : isReady(r) ? "ready" : "review";
-const statusChip = (r) => isSent(r) ? `<span class="chip ok">${ICON.check}Sent</span>`
-  : isReady(r) ? `<span class="chip ok"><span class="dot"></span>Ready</span>` : `<span class="chip warn"><span class="dot"></span>Needs review</span>`;
-
-// ---------- edits ----------
-const draft = (r) => {
-  const e = state.edits[r.target] || {};
-  return { subject: e.subject ?? r.subject, body: e.body ?? r.body, followup: e.followup ?? r.followup_body, note: e.note ?? r.linkedin_note };
-};
-const isEdited = (r) => { const e = state.edits[r.target]; return !!e && Object.keys(e).length > 0; };
-function edit(r, field, value) {
-  const orig = { subject: r.subject, body: r.body, followup: r.followup_body, note: r.linkedin_note }[field];
-  const e = state.edits[r.target] = state.edits[r.target] || {};
-  if (value === orig) delete e[field]; else e[field] = value;
-  if (!Object.keys(e).length) delete state.edits[r.target];
-  store.set("edits", state.edits);
+const folderOf = (r) => isSent(r) ? "sent" : isReady(r) ? "drafts" : "review";
+const draft = (r) => { const e = S.edits[r.target] || {}; return { subject: e.subject ?? r.subject, body: e.body ?? r.body, followup: e.followup ?? r.followup_body, note: e.note ?? r.linkedin_note }; };
+const edited = (r) => !!S.edits[r.target] && Object.keys(S.edits[r.target]).length > 0;
+function setEdit(r, f, v) {
+  const orig = { subject: r.subject, body: r.body, followup: r.followup_body, note: r.linkedin_note }[f];
+  const e = S.edits[r.target] = S.edits[r.target] || {};
+  if (v === orig) delete e[f]; else e[f] = v;
+  if (!Object.keys(e).length) delete S.edits[r.target];
+  store.set("edits", S.edits);
 }
-const fullBody = (r, body) => r.footer ? body.replace(/\s+$/, "") + "\n\n" + r.footer : body;
+const full = (r, body) => r.footer ? body.replace(/\s+$/, "") + "\n\n" + r.footer : body;
+const recipient = (r) => r.contact_name !== "unknown" ? r.contact_name : r.target;
+const chanLabel = (r) => ({ "email": ["email", "Email"], "email (shared inbox)": ["shared", "Shared inbox"], "LinkedIn note": ["li", "LinkedIn"], "contact form": ["form", "Contact form"] }[r.channel] || ["review", "No channel"]);
 function gmail(to, subject, body) {
   const q = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
   if (M.account) q.set("authuser", M.account);
   return "https://mail.google.com/mail/?" + q.toString().replace(/\+/g, "%20");
 }
-function eml(r, subject, body) {
-  const lines = [];
+function primaryAction(r, kind = "default") {
+  // kind "default" follows the target's channel; "email", "followup" and "note" are a specific message.
+  const d = draft(r);
+  if (kind === "followup") return r.to_email ? { href: gmail(r.to_email, "Re: " + d.subject, d.followup), label: "Open follow-up in Gmail", icon: "send" } : null;
+  if (kind === "note" || (kind === "default" && r.channel === "LinkedIn note")) return r.profile_link ? { href: r.profile_link, label: "Open LinkedIn", icon: "li" } : null;
+  if (r.channel === "contact form") return { href: r.contact_form, label: "Open contact form", icon: "note" };
+  if (r.to_email) return { href: gmail(r.to_email, d.subject, full(r, d.body)), label: "Open in Gmail", icon: "send" };
+  return null;
+}
+function eml(r) {
+  const d = draft(r), lines = [];
   if (r.to_email) lines.push("To: " + r.to_email);
   if (M.from) lines.push("From: " + M.from);
-  lines.push("Subject: " + subject.replace(/\s+/g, " ").trim(), "X-Unsent: 1", "MIME-Version: 1.0",
-             "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: 8bit", "", body.replace(/\r?\n/g, "\r\n"));
+  lines.push("Subject: " + d.subject.replace(/\s+/g, " ").trim(), "X-Unsent: 1", "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "", full(r, d.body).replace(/\r?\n/g, "\r\n"));
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([lines.join("\r\n")], { type: "message/rfc822" }));
   a.download = r.target.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".eml";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1600); }
+let snackT;
+function snack(msg, undo) {
+  $("snacktxt").textContent = msg; const u = $("snackundo");
+  u.hidden = !undo; u.onclick = () => { undo(); $("snack").classList.remove("show"); };
+  $("snack").classList.add("show"); clearTimeout(snackT); snackT = setTimeout(() => $("snack").classList.remove("show"), 4000);
+}
 async function copy(text, what) {
   try { await navigator.clipboard.writeText(text); }
-  catch (e) { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
-  toast(what + " copied");
+  catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  snack(what + " copied to clipboard");
+}
+function setSent(list, on) {
+  const before = JSON.stringify(S.sent);
+  list.forEach((r) => { if (on) S.sent[r.target] = new Date().toISOString().slice(0, 10); else delete S.sent[r.target]; });
+  store.set("sent", S.sent); render();
+  snack(on ? (list.length > 1 ? `${list.length} conversations marked as sent` : "Marked as sent") : "Marked as not sent",
+        () => { S.sent = JSON.parse(before); store.set("sent", S.sent); render(); });
 }
 
-// ---------- header ----------
-function renderTop() {
-  $("req").textContent = M.request;
-  $("req").title = M.request;
-  const chips = [M.demo ? '<span class="chip accent">Demo · fictional data</span>' : "",
-    `<span>${esc(M.company)}</span>`, `<span>·</span><span>${M.mode === "people" ? "Finding people" : "Meeting companies"}</span>`,
-    `<span>·</span><span>${esc(M.date)}</span>`];
-  $("meta").innerHTML = chips.join("");
-  const sent = rows.filter(isSent).length, ready = rows.filter(isReady).length;
-  $("progtxt").textContent = `${sent} of ${ready} ready sent`;
-  $("progbar").style.width = (ready ? 100 * sent / ready : 0) + "%";
+// ---------- nav ----------
+function counts() { const c = { drafts: 0, review: 0, sent: 0, all: rows.length }; rows.forEach((r) => c[folderOf(r)]++); return c; }
+function renderNav() {
+  const c = counts(), next = rows.find((r) => folderOf(r) === "drafts");
+  const F = [["drafts", "Drafts", "drafts"], ["review", "Needs review", "review"], ["sent", "Sent", "send"], ["all", "All outreach", "all"]];
+  const chans = {}; rows.forEach((r) => { const [k, l] = chanLabel(r); chans[k] = chans[k] || { l, n: 0 }; chans[k].n++; });
+  const LC = { email: "#1a73e8", shared: "#188038", li: "#0a66c2", form: "#a142f4", review: "#d93025" };
+  const sent = rows.filter(isSent), ready = rows.filter(isReady);
+  $("nav").innerHTML = `
+    <button class="fab" id="next" ${next ? "" : "disabled"}>${I("edit")}Review next draft</button>
+    ${F.map(([k, l, ic]) => `<div class="nv" role="link" tabindex="0" data-f="${k}" aria-current="${S.folder === k}">${I(ic)}<span class="lbl">${l}</span><span class="cnt">${k === "all" ? "" : c[k] || ""}</span></div>`).join("")}
+    <div class="navh">Channels</div>
+    ${Object.entries(chans).map(([k, v]) => `<div class="nv" role="link" tabindex="0" data-f="ch:${k}" aria-current="${S.folder === "ch:" + k}">${I("label", `style="color:${LC[k]}"`)}<span class="lbl">${v.l}</span><span class="cnt">${v.n}</span></div>`).join("")}
+    <div class="runinfo"><b>${esc(M.company)}</b><br>${M.mode === "people" ? "Finding people" : "Meeting companies"} · ${esc(M.date)}
+      <div class="meter"><i style="width:${ready.length ? 100 * sent.length / ready.length : 0}%"></i></div><span id="progtxt">${sent.length} of ${ready.length} ready sent</span></div>
+    <div class="ledger ${sent.length ? "show" : ""}" id="ledger"></div>`;
+  if (sent.length) {
+    const cmd = `python main.py --mark-sent "${M.outdir}" --only "${sent.map((r) => r.target.replace(/"/g, "")).join(",")}"`;
+    $("ledger").innerHTML = `Record what you've sent in the shared ledger so nobody is contacted twice:<code>${esc(cmd)}</code><button class="txtbtn" id="cpled">Copy command</button>`;
+    $("cpled").onclick = () => copy(cmd, "Command");
+  }
+  $("nav").querySelectorAll("[data-f]").forEach((el) => el.onclick = () => { S.folder = el.dataset.f; store.set("folder", S.folder); S.open = null; S.checked.clear(); S.cursor = 0; document.body.classList.remove("drawer"); render(); });
+  $("next").onclick = () => { const r = rows.find((x) => folderOf(x) === "drafts"); if (r) { S.folder = "drafts"; openRow(rows.indexOf(r)); } };
 }
 
 // ---------- list ----------
 function visible() {
-  const q = state.q.trim().toLowerCase();
-  return rows.map((r, i) => [r, i]).filter(([r]) => (state.filter === "all" || bucket(r) === state.filter) &&
-    (!q || [r.target, r.company, r.contact_name, r.contact_title, r.fact_used, r.location].join(" ").toLowerCase().includes(q)));
+  const q = S.q.trim().toLowerCase();
+  return rows.map((r, i) => [r, i]).filter(([r]) => {
+    const inF = S.folder === "all" ? true : S.folder.startsWith("ch:") ? chanLabel(r)[0] === S.folder.slice(3) : folderOf(r) === S.folder;
+    return inF && (!q || [r.target, r.company, r.contact_name, r.contact_title, r.subject, r.body, r.fact_used].join(" ").toLowerCase().includes(q));
+  });
 }
 function renderList() {
-  const n = { all: rows.length, ready: 0, review: 0, sent: 0 };
-  rows.forEach((r) => n[bucket(r)]++);
-  $("seg").innerHTML = [["all", "All"], ["ready", "Ready"], ["review", "Review"], ["sent", "Sent"]].map(([k, l]) =>
-    `<button data-f="${k}" aria-pressed="${state.filter === k}">${l}<span class="n">${n[k]}</span></button>`).join("");
-  const vis = visible();
-  $("items").innerHTML = vis.length ? vis.map(([r, i]) => `
-    <div class="item" role="option" data-i="${i}" aria-selected="${i === state.sel}" tabindex="-1">
-      <div class="avatar" style="background:${color(r.target)}">${esc(initials(r.target))}${isSent(r) ? `<span class="done">${ICON.check.replace('width="13" height="13"', 'width="9" height="9"').replace('currentColor', '#fff')}</span>` : ""}</div>
-      <div style="min-width:0">
-        <div class="row1"><span class="name">${esc(r.target)}</span></div>
-        <div class="who">${esc(r.contact_name === r.target ? r.contact_title + (r.company !== r.target ? " · " + r.company : "")
-          : r.contact_name !== "unknown" ? r.contact_name + " · " + r.contact_title : "No named contact")}</div>
-        <div class="hook">${esc(r.fact_used)}</div>
-        <div class="tags">${statusChip(r)}<span class="chip">${channelIcon(r.channel)}${channelLabel(r.channel)}</span>${isEdited(r) ? '<span class="chip accent">Edited</span>' : ""}</div>
-      </div>
-    </div>`).join("") : `<div class="empty">${rows.length ? "Nothing matches this filter." : "No targets in this run."}</div>`;
-  const sent = rows.filter(isSent);
-  const led = $("ledger");
-  led.classList.toggle("show", sent.length > 0);
-  if (sent.length) {
-    const cmd = `python main.py --mark-sent "${M.outdir}" --only "${sent.map((r) => r.target.replace(/"/g, "")).join(",")}"`;
-    led.innerHTML = `<b>${sent.length} marked sent here.</b> Record them in the shared ledger so they're never contacted twice:<code>${esc(cmd)}</code><button class="btn" id="cpled">${ICON.copy}Copy command</button>`;
-    $("cpled").onclick = () => copy(cmd, "Ledger command");
+  const vis = visible(), allChecked = vis.length > 0 && vis.every(([, i]) => S.checked.has(i)), anyChecked = vis.some(([, i]) => S.checked.has(i));
+  const emptyMsg = { drafts: ["No drafts left", "Everything ready has been marked as sent."], review: ["Nothing needs review", "Every draft passed its checks."], sent: ["Nothing sent yet", "Mark drafts as sent after you send them."] }[S.folder] || ["Nothing here", "No conversations match."];
+  $("main").innerHTML = `
+    <div class="tb">
+      <button class="ib sm" id="ckall" aria-label="Select all">${I(allChecked ? "boxOn" : "box")}</button>
+      ${anyChecked ? `<button class="ib sm" id="bulksent" title="Mark as sent">${I("done")}</button><button class="ib sm" id="bulkunsent" title="Mark as not sent">${I("drafts")}</button>` : ""}
+      <span class="grow"></span><span class="pg kbdhelp"><kbd>j</kbd> <kbd>k</kbd> move · <kbd>o</kbd> open · <kbd>s</kbd> sent · <kbd>/</kbd> search</span>
+      <span class="pg">${vis.length ? `1–${vis.length} of ${vis.length}` : "0 of 0"}</span>
+    </div>
+    <div class="list" id="list" role="list">${vis.length ? vis.map(([r, i], k) => {
+      const d = draft(r), [lk, ll] = chanLabel(r), snip = d.body.replace(/\s+/g, " ").replace(/^Hi [^,]+,\s*/, "");
+      const isNote = r.channel === "LinkedIn note", a = primaryAction(r);
+      return `<div class="row ${isSent(r) ? "read" : "unread"} ${S.checked.has(i) ? "checked" : ""} ${k === S.cursor ? "cursor" : ""}" role="listitem" data-i="${i}">
+        <button class="ck" data-ck="${i}" aria-label="Select">${I(S.checked.has(i) ? "boxOn" : "box")}</button>
+        <button class="st ${S.starred[r.target] ? "on" : ""}" data-st="${i}" aria-label="Star">${I(S.starred[r.target] ? "star" : "starO")}</button>
+        <div class="who">${isSent(r) ? "To: " : '<span class="draft">Draft</span> '}${esc(recipient(r))}${r.contact_name !== "unknown" && r.contact_name !== r.target ? ` <span class="co">· ${esc(r.target)}</span>` : ""}</div>
+        <div class="cnt-sub">${!isReady(r) && !isSent(r) ? '<span class="lb review">Needs review</span>' : ""}<span class="lb ${lk}">${ll}</span>${edited(r) ? '<span class="lb plain">Edited</span>' : ""}
+          <span class="subj">${esc(isNote ? "LinkedIn note" : d.subject)}</span><span class="snip"><span class="dash">&nbsp;- </span>${esc(isNote ? d.note : snip)}</span></div>
+        <div class="date">${isSent(r) ? esc(fmt(S.sent[r.target])) : esc(M.short)}</div>
+        <div class="acts">${a ? `<a class="ib sm" href="${esc(a.href)}" target="_blank" rel="noopener" title="${a.label}" data-noopen="1">${I(a.icon)}</a>` : ""}
+          <button class="ib sm" data-sent="${i}" title="${isSent(r) ? "Mark as not sent" : "Mark as sent"}">${I(isSent(r) ? "drafts" : "done")}</button>
+          <button class="ib sm" data-copy="${i}" title="Copy">${I("copy")}</button></div>
+      </div>`; }).join("") : `<div class="empty"><b>${emptyMsg[0]}</b>${emptyMsg[1]}</div>`}</div>`;
+  $("ckall").onclick = () => { if (allChecked) vis.forEach(([, i]) => S.checked.delete(i)); else vis.forEach(([, i]) => S.checked.add(i)); renderList(); };
+  if (anyChecked) {
+    const picked = () => vis.filter(([, i]) => S.checked.has(i)).map(([r]) => r);
+    $("bulksent").onclick = () => { const p = picked(); S.checked.clear(); setSent(p, true); };
+    $("bulkunsent").onclick = () => { const p = picked(); S.checked.clear(); setSent(p, false); };
   }
+  $("list").onclick = (e) => {
+    const t = e.target.closest("[data-ck],[data-st],[data-sent],[data-copy],[data-noopen]");
+    if (t) {
+      e.stopPropagation();
+      if (t.dataset.ck) { const i = +t.dataset.ck; S.checked.has(i) ? S.checked.delete(i) : S.checked.add(i); renderList(); }
+      else if (t.dataset.st) { const r = rows[+t.dataset.st]; S.starred[r.target] = !S.starred[r.target]; store.set("starred", S.starred); renderList(); }
+      else if (t.dataset.sent) { const r = rows[+t.dataset.sent]; setSent([r], !isSent(r)); }
+      else if (t.dataset.copy) { const r = rows[+t.dataset.copy], d = draft(r); copy(r.channel === "LinkedIn note" ? d.note : full(r, d.body), "Message"); }
+      return;
+    }
+    const row = e.target.closest(".row"); if (row) openRow(+row.dataset.i);
+  };
 }
 
-// ---------- detail ----------
-function tabsFor(r) {
-  const t = [];
-  if (r.channel.startsWith("email") || r.channel === "contact form" || r.channel === "none") t.push(["email", r.channel === "contact form" ? "Message" : "Email"]);
-  if (r.channel === "LinkedIn note" || (r.linkedin_note && r.channel === "none")) t.push(["note", "LinkedIn note"]);
-  if (r.followup_body) t.push(["followup", "Follow-up"]);
-  if (r.channel === "LinkedIn note" && r.body) t.push(["email", "Email version"]);
-  return t;
-}
-function bannerHtml(r) {
+// ---------- reading view ----------
+function openRow(i) { S.open = i; S.expandFU = false; const v = visible().map(([, j]) => j); S.cursor = Math.max(0, v.indexOf(i)); render(); const rv = $("main").querySelector(".read-view"); if (rv) rv.scrollTop = 0; }
+function bannerFor(r) {
   const checks = r.to_check === "none" ? [] : r.to_check.split(" | ");
-  if (isSent(r)) return `<div class="banner ok">${ICON.ok}<div><b>Marked as sent</b>Follow up on ${esc(r.followup_send_after || "a few days")} if there's no reply.</div></div>`;
-  if (isReady(r) && !checks.length) {
-    const how = r.channel === "LinkedIn note" ? "Send it as a connection note from their profile."
-      : r.channel === "contact form" ? "Paste it into their contact form; the legal footer is included."
-      : r.email_kind === "generic" ? "It goes to a shared inbox and asks them to pass it to the right person; the legal footer is attached."
-      : "The contact checks out and the legal footer is attached.";
-    return `<div class="banner ok">${ICON.ok}<div><b>Ready to send</b>Every fact is sourced. ${how}</div></div>`;
-  }
-  const cls = isReady(r) ? "warn" : "bad";
-  const title = isReady(r) ? "Ready, but worth a look" : "Not ready to send";
-  // Blockers first and bold; a reason that isn't a reviewer flag (e.g. no channel) comes from the status.
-  const block = checks.filter((c) => c.startsWith("BLOCKER")).map((c) => `<li><b style="display:inline">${esc(c.replace(/^BLOCKER:\s*/, ""))}</b></li>`);
+  if (isSent(r)) return `<div class="banner ok">${I("done")}<div><b>Sent ${esc(fmt(S.sent[r.target]))}.</b> ${r.followup_send_after ? `Follow up on ${esc(fmt(r.followup_send_after))} if there's no reply.` : ""}</div></div>`;
+  if (isReady(r) && !checks.length) return "";
+  const block = checks.filter((c) => c.startsWith("BLOCKER")).map((c) => `<li><b>${esc(c.replace(/^BLOCKER:\s*/, ""))}</b></li>`);
   const rest = checks.filter((c) => !c.startsWith("BLOCKER")).map((c) => `<li>${esc(c)}</li>`);
-  if (!isReady(r) && !block.length) block.push(`<li><b style="display:inline">${esc(r.status.replace(/^not ready:\s*/, ""))}</b></li>`);
-  return `<div class="banner ${cls}">${ICON.warn}<div><b>${title}</b><ul>${block.join("")}${rest.join("")}</ul></div></div>`;
+  if (!isReady(r) && !block.length) block.push(`<li><b>${esc(r.status.replace(/^not ready:\s*/, ""))}</b></li>`);
+  const bad = !isReady(r);
+  return `<div class="banner ${bad ? "bad" : "warn"}">${I("review")}<div><b>${bad ? "Don't send this yet." : "Worth a look before sending."}</b><ul>${block.join("")}${rest.join("")}</ul></div></div>`;
 }
-function counter(kind, text) {
-  if (kind === "note") { const n = text.length; return `<span class="count ${n <= 300 ? "ok" : "warn"}">${n} / 300 characters</span>`; }
-  const w = words(text), [lo, hi] = kind === "followup" ? [15, 60] : [50, 110];
-  return `<span class="count ${w >= lo && w <= hi ? "ok" : "warn"}">${w} words · aim for ${lo}–${hi}</span>`;
+function message(r, kind) {
+  const d = draft(r), me = M.sender || "You", meAddr = M.account ? `&lt;${esc(M.account)}&gt;` : "";
+  const to = kind === "note" ? `to ${esc(recipient(r))} on LinkedIn` : r.channel === "contact form" ? `via the ${esc(host(r.contact_form))} contact form`
+    : r.to_email ? `to ${esc(recipient(r))} &lt;${esc(r.to_email)}&gt;${r.email_kind === "generic" ? ' <span class="tag">shared inbox</span>' : ""}` : "no email address found";
+  const body = kind === "followup" ? d.followup : kind === "note" ? d.note : d.body;
+  const when = kind === "followup" ? `${I("sched", 'style="width:14px;height:14px;vertical-align:-3px"')} Send ${esc(fmt(r.followup_send_after))} if no reply` : isSent(r) ? esc(fmt(S.sent[r.target])) : "Draft";
+  const act = primaryAction(r, kind);
+  const label = { email: r.channel === "contact form" ? "Message" : r.channel === "LinkedIn note" ? "Email version" : "", followup: "Follow-up", note: "LinkedIn note" }[kind];
+  const collapsed = kind === "followup" && !S.expandFU;
+  return `<div class="msg ${collapsed ? "collapsed" : ""}" data-kind="${kind}">
+    <div class="av" style="background:${M.senderColor}">${esc(ini(me))}</div>
+    <div style="min-width:0">
+      <div class="mh"><div class="from"><b>${esc(me)}</b> <span class="addr">${meAddr}</span>${label ? ` <span class="tag blue">${label}</span>` : ""}<div class="to">${to}</div></div>
+        <div class="when">${when}</div></div>
+      <div class="snipline">${esc(body.replace(/\s+/g, " "))}</div>
+      <div class="mbody" id="body-${kind}">${esc(body)}</div>
+      ${kind === "email" && r.footer ? `<div class="mfoot">${esc(r.footer)}</div>` : ""}
+      <div class="pills">
+        ${act ? `<a class="pill fill" id="${kind === "followup" ? "act-fu" : kind === "email" ? "act" : "act-note"}" href="${esc(act.href)}" target="_blank" rel="noopener">${I(act.icon)}${act.label}</a>` : ""}
+        <button class="pill" data-edit="${kind}">${I("edit")}Edit</button>
+        <button class="pill" data-copyk="${kind}">${I("copy")}Copy</button>
+        ${kind === "email" && r.to_email ? `<button class="pill" id="dl">${I("dl")}.eml</button>` : ""}
+      </div>
+      ${kind === "note" ? `<div class="meta-note">${body.length} / 300 characters</div>` : ""}
+    </div></div>`;
 }
-function renderDetail() {
-  const r = rows[state.sel];
-  const main = $("main");
-  if (!r) { main.innerHTML = '<div class="empty">Select a target</div>'; $("side").innerHTML = ""; return; }
-  const tabs = tabsFor(r);
-  let tab = state.tab[r.target] || (tabs[0] || [])[0];
-  if (!tabs.some(([k]) => k === tab)) tab = (tabs[0] || [])[0];
-  const d = draft(r);
-  const self_ = r.contact_name === r.target;
-  const sub = [r.contact_name !== "unknown" ? (self_ ? esc(r.contact_title) : `${esc(r.contact_name)}, ${esc(r.contact_title)}`) : "", r.company !== r.target ? esc(r.company) : "",
-    esc(r.location), r.website && r.website.startsWith("http") ? `<a href="${esc(r.website)}" target="_blank" rel="noopener">${esc(host(r.website))}</a>` : ""].filter(Boolean).join(" · ");
-  let comp = "";
-  if (tab === "email") {
-    const to = r.channel === "contact form" ? `<a href="${esc(r.contact_form)}" target="_blank" rel="noopener">${esc(host(r.contact_form))}/…</a><span class="chip">${ICON.form}Contact form</span>`
-      : r.to_email ? `<span>${esc(r.to_email)}</span><span class="chip ${r.email_kind === "generic" ? "warn" : "ok"}">${r.email_kind === "generic" ? "Shared inbox" : r.email_kind === "personal" ? "Personal" : "Address"}</span>`
-      : '<span style="color:var(--ink-3)">No address found</span>';
-    comp = `<div class="field"><label>To</label><div class="val">${to}</div></div>
-      <div class="field"><label>Subject</label><div class="val"><input id="f-subject" value="${esc(d.subject)}" aria-label="Subject"></div></div>
-      <div class="body"><textarea id="f-body" aria-label="Email body">${esc(d.body)}</textarea></div>
-      ${r.footer ? `<div class="footer-lock"><div class="t">${ICON.lock}Added automatically (legal footer)</div>${esc(r.footer)}</div>` : ""}`;
-  } else if (tab === "followup") {
-    comp = `<div class="field"><label>When</label><div class="val">Send on <b>${esc(r.followup_send_after)}</b> if there's no reply, in the same thread</div></div>
-      <div class="body"><textarea id="f-followup" aria-label="Follow-up">${esc(d.followup)}</textarea></div>`;
-  } else if (tab === "note") {
-    const prof = r.profile_link ? `<a href="${esc(r.profile_link)}" target="_blank" rel="noopener">${r.profile_link.includes("/search/") ? "Search LinkedIn" : esc(host(r.profile_link) + new URL(r.profile_link).pathname)}</a>` : "No profile link";
-    comp = `<div class="field"><label>Profile</label><div class="val">${prof}<span class="chip">${ICON.li}Connection note</span></div></div>
-      <div class="body"><textarea id="f-note" aria-label="LinkedIn note">${esc(d.note)}</textarea></div>`;
-  }
-  // Primary action for this tab, always using the edited text.
-  const field = tab === "email" ? "body" : tab;
-  let primary = "", secondary = "";
-  if (tab === "email" && r.to_email) {
-    primary = `<a class="btn primary" id="act" target="_blank" rel="noopener">${ICON.mail}Open in Gmail</a>`;
-    secondary = `<button class="btn" id="cp">${ICON.copy}Copy</button><button class="btn" id="dl">${ICON.dl}.eml</button>`;
-  } else if (tab === "email" && r.channel === "contact form") {
-    primary = `<a class="btn primary" id="act" href="${esc(r.contact_form)}" target="_blank" rel="noopener">${ICON.form}Open contact form</a>`;
-    secondary = `<button class="btn" id="cp">${ICON.copy}Copy message</button>`;
-  } else if (tab === "followup") {
-    primary = r.to_email ? `<a class="btn primary" id="act" target="_blank" rel="noopener">${ICON.mail}Open follow-up in Gmail</a>` : "";
-    secondary = `<button class="btn${primary ? "" : " primary"}" id="cp">${ICON.copy}Copy follow-up</button>`;
-  } else if (tab === "note") {
-    primary = r.profile_link ? `<a class="btn primary" id="act" href="${esc(r.profile_link)}" target="_blank" rel="noopener">${ICON.li}Open profile</a>` : "";
-    secondary = `<button class="btn" id="cp">${ICON.copy}Copy note</button>`;
-  } else {
-    secondary = `<button class="btn" id="cp">${ICON.copy}Copy</button>`;
-  }
-  main.innerHTML = `
-    <button class="btn back" id="back">${ICON.back}All targets</button>
-    <div class="head">
-      <div class="avatar" style="background:${color(r.target)}">${esc(initials(r.target))}</div>
-      <div class="grow"><h1>${esc(r.target)}</h1><div class="sub">${sub}</div></div>
-      <button class="btn ${isSent(r) ? "sent" : ""}" id="sent" title="Mark as sent (s)">${ICON.check}${isSent(r) ? "Sent" : "Mark as sent"}</button>
+function renderRead() {
+  const r = rows[S.open], v = visible().map(([, i]) => i), pos = v.indexOf(S.open);
+  const kinds = (r.channel === "LinkedIn note" ? ["note", "email", "followup"] : ["email", "followup"])
+    .filter((k) => (k !== "followup" || r.followup_body) && (k !== "email" || r.body) && (k !== "note" || r.linkedin_note));
+  const [lk, ll] = chanLabel(r);
+  $("main").innerHTML = `
+    <div class="tb">
+      <button class="ib sm" id="back" title="Back to list (u)">${I("back")}</button><span class="sep"></span>
+      <button class="ib sm" id="sent" title="${isSent(r) ? "Mark as not sent" : "Mark as sent (s)"}">${I(isSent(r) ? "drafts" : "done")}</button>
+      <button class="ib sm" id="tcopy" title="Copy">${I("copy")}</button>
+      <button class="ib sm" id="tstar" title="Star">${I(S.starred[r.target] ? "star" : "starO", S.starred[r.target] ? 'style="color:#f4b400"' : "")}</button>
+      <span class="grow"></span>
+      <span class="pg">${pos >= 0 ? pos + 1 : 1} of ${Math.max(v.length, 1)}</span>
+      <button class="ib sm" id="prev" ${pos <= 0 ? "disabled" : ""} title="Newer (k)">${I("left")}</button>
+      <button class="ib sm" id="nxt" ${pos < 0 || pos >= v.length - 1 ? "disabled" : ""} title="Older (j)">${I("right")}</button>
     </div>
-    ${bannerHtml(r)}
-    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-t="${k}" aria-selected="${k === tab}">${l}</button>`).join("")}</div>
-    <div class="composer">${comp}
-      <div class="toolbar">${primary}${secondary}<span class="spacer"></span>
-        <span class="edited ${isEdited(r) ? "show" : ""}" id="edited">Edited · saved in this browser <button id="reset">Reset</button></span>
-        <span id="cnt"></span></div>
-    </div>
-    <div class="keys"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>s</kbd> mark sent</span><span><kbd>e</kbd> edit</span><span><kbd>/</kbd> search</span><span><kbd>g</kbd> open</span></div>
-    <div class="side-inline">${evidenceHtml(r)}</div>`;
-  $("side").innerHTML = evidenceHtml(r);
+    <div class="read-view">
+      <div class="subject"><h2 id="subject-h">${esc(r.channel === "LinkedIn note" ? `${recipient(r)}: LinkedIn note` : draft(r).subject)}</h2>
+        ${!isReady(r) && !isSent(r) ? '<span class="lb review">Needs review</span>' : ""}<span class="lb ${lk}">${ll}</span>${isSent(r) ? '<span class="lb sentlb">Sent</span>' : ""}</div>
+      ${bannerFor(r)}
+      ${kinds.map((k) => message(r, k)).join("")}
+      <div class="inline-panel">${research(r)}</div>
+    </div>`;
+  $("back").onclick = () => { S.open = null; render(); };
+  $("sent").onclick = () => setSent([r], !isSent(r));
+  $("tcopy").onclick = () => { const d = draft(r); copy(r.channel === "LinkedIn note" ? d.note : full(r, d.body), "Message"); };
+  $("tstar").onclick = () => { S.starred[r.target] = !S.starred[r.target]; store.set("starred", S.starred); renderRead(); };
+  $("prev").onclick = () => openRow(v[pos - 1]); $("nxt").onclick = () => openRow(v[pos + 1]);
+  const dl = $("dl"); if (dl) dl.onclick = () => eml(r);
+  $("main").querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => openCompose(r, b.dataset.edit));
+  $("main").querySelectorAll("[data-copyk]").forEach((b) => b.onclick = () => { const d = draft(r), k = b.dataset.copyk; copy(k === "note" ? d.note : k === "followup" ? d.followup : full(r, d.body), k === "note" ? "Note" : k === "followup" ? "Follow-up" : "Email"); });
+  $("main").querySelectorAll(".msg.collapsed").forEach((m) => m.onclick = () => { S.expandFU = true; renderRead(); });
+}
 
-  const ta = main.querySelector("textarea"), subj = $("f-subject");
-  const val = () => ({ subject: subj ? subj.value : d.subject, text: ta ? ta.value : "" });
-  const grow = () => { if (ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; } };
-  const refresh = () => {
-    const v = val();
-    $("cnt").innerHTML = ta ? counter(tab === "email" ? "email" : tab, v.text) : "";
-    const act = $("act");
-    if (act && tab === "email" && r.to_email) act.href = gmail(r.to_email, v.subject, fullBody(r, v.text));
-    if (act && tab === "followup" && r.to_email) act.href = gmail(r.to_email, "Re: " + v.subject, v.text);
-  };
-  grow(); refresh();
-  if (ta) ta.oninput = () => { edit(r, field, ta.value); grow(); refresh(); $("edited").classList.add("show"); renderListLite(); };
-  if (subj) subj.oninput = () => { edit(r, "subject", subj.value); refresh(); $("edited").classList.add("show"); renderListLite(); };
-  $("reset").onclick = () => { delete state.edits[r.target]; store.set("edits", state.edits); render(); toast("Reverted to the reviewed draft"); };
-  const cp = $("cp");
-  if (cp) cp.onclick = () => {
-    const v = val();
-    if (tab === "email") copy(r.channel === "contact form" ? fullBody(r, v.text) : `Subject: ${v.subject}\n\n${fullBody(r, v.text)}`, "Email");
-    else copy(v.text, tab === "note" ? "Note" : "Follow-up");
-  };
-  const dl = $("dl"); if (dl) dl.onclick = () => { const v = val(); eml(r, v.subject, fullBody(r, v.text)); };
-  $("sent").onclick = () => toggleSent(r);
-  $("back").onclick = () => document.body.classList.remove("detail");
-  main.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { state.tab[r.target] = b.dataset.t; renderDetail(); });
-}
-function evidenceHtml(r) {
-  const v = Object.entries(r.verdicts || {}), met = v.filter(([, x]) => x === "yes").length, pct = v.length ? met / v.length : 0;
-  const ring = `<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--chip)" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="var(--ok)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(pct * 94.2).toFixed(1)} 94.2" transform="rotate(-90 18 18)"/></svg>`;
-  const mark = { yes: "✓", no: "✕", unclear: "?" };
-  const fc = { yes: ["ok", "Found on source page"], NO: ["bad", "Not found on source page"], unchecked: ["", "Not checked"] }[r.fact_check] || ["", r.fact_check];
-  const vf = r.contact_verified.startsWith("yes") ? ["ok", "Verified on source"] : r.contact_verified.startsWith("NO") ? ["bad", "Not on source page"]
-    : r.contact_source.includes("linkedin.com") ? ["", "LinkedIn isn't fetched (by policy)"] : ["", "Page couldn't be checked"];
-  const facts = (r.facts || []).map((f) => `<li class="${f.source_url === r.fact_source ? "used" : ""}">${esc(f.fact)}
-      <div class="src"><span class="chip ${f.age_months != null && f.age_months <= 12 ? "ok" : ""}">${esc(f.date)}</span><a href="${esc(f.source_url)}" target="_blank" rel="noopener">${esc(host(f.source_url))} ${ICON.ext}</a>${f.source_url === r.fact_source ? '<span class="chip accent">Opener</span>' : ""}</div></li>`).join("");
-  const contact = r.contact_name !== "unknown" ? `<dt>Contact</dt><dd>${esc(r.contact_name)}<br><span style="color:var(--ink-3)">${esc(r.contact_title)}</span></dd>
-      <dt>Checked</dt><dd><span class="chip ${vf[0]}">${vf[1]}</span>${r.contact_source.startsWith("http") ? ` <a href="${esc(r.contact_source)}" target="_blank" rel="noopener">source ${ICON.ext}</a>` : ""}</dd>`
-    : `<dt>Contact</dt><dd style="color:var(--ink-3)">No named person found</dd>`;
-  const email = r.to_email ? `<dt>Email</dt><dd>${esc(r.to_email)}${r.email_source ? `<br><span style="color:var(--ink-3)">from ${r.email_source.startsWith("http") ? `<a href="${esc(r.email_source)}" target="_blank" rel="noopener">${esc(host(r.email_source))}</a>` : esc(r.email_source)}</span>` : ""}</dd>` : "";
+// ---------- research panel ----------
+function research(r) {
+  const v = Object.entries(r.verdicts || {}), met = v.filter(([, x]) => x === "yes").length;
+  const fc = { yes: ["ok", "Found on source page"], NO: ["bad", "Not found on source page"] }[r.fact_check] || ["", "Not checked"];
+  const vf = r.contact_verified.startsWith("yes") ? ["ok", "Verified on source"] : r.contact_verified.startsWith("NO") ? ["bad", "Not on source page"] : ["", r.contact_source.includes("linkedin.com") ? "LinkedIn not fetched" : "Not checked"];
+  const fact = (r.facts || []).find((f) => f.source_url === r.fact_source);
   return `
-    <h2>Why this target</h2>
-    <div class="card"><div class="fit">${ring}<div><b>${met} of ${v.length} criteria</b><span>${esc(r.fit_reason)}</span></div></div>
-      <ul class="crit">${v.map(([c, x]) => `<li><span class="ic ${x}">${mark[x] || "?"}</span><span>${esc(c)}</span></li>`).join("")}</ul></div>
-    <h2>Why now</h2>
-    <div class="card"><div style="font-size:13.5px">${esc(r.fact_used)}</div>
-      <div class="facts"><div class="src" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><span class="chip ${fc[0]}">${fc[1]}</span>${r.fact_source ? `<a style="font-size:12px" href="${esc(r.fact_source)}" target="_blank" rel="noopener">${esc(host(r.fact_source))} ${ICON.ext}</a>` : ""}</div></div></div>
-    <h2>Contact</h2>
-    <div class="card"><dl class="kv">${contact}${email}</dl></div>
-    <h2>Research notes</h2>
-    <div class="card"><ul class="facts">${facts || '<li style="color:var(--ink-3)">No notes</li>'}</ul>
-      ${r.auto_fixed ? `<details class="fixed"><summary>Reviewer fixed ${r.auto_fixed.split(" | ").length} issue(s) in the draft</summary><ul>${r.auto_fixed.split(" | ").map((f) => `<li>${esc(f)}</li>`).join("")}</ul></details>` : ""}</div>`;
+    <div class="sec"><h3>Why ${esc(r.target)}</h3><div class="score"><b>${met}/${v.length}</b><span>criteria met</span></div>
+      <ul class="crit">${v.map(([c, x]) => `<li>${I(x === "yes" ? "yes" : x === "no" ? "no" : "unclear", "", x)}<span>${esc(c)}</span></li>`).join("")}</ul></div>
+    <div class="sec"><h3>Why now</h3><div style="font-size:13px;line-height:18px">${esc(r.fact_used)}</div>
+      <div class="facts"><div class="m"><span class="tag ${fc[0]}">${fc[1]}</span>${fact ? `<span class="tag">${esc(fact.date)}</span>` : ""}${r.fact_source ? `<a href="${esc(r.fact_source)}" target="_blank" rel="noopener">${esc(host(r.fact_source))}</a>` : ""}</div></div></div>
+    <div class="sec"><h3>Contact</h3><dl class="kv">
+      ${r.contact_name !== "unknown" ? `<dt>Name</dt><dd>${esc(r.contact_name)}</dd><dt>Title</dt><dd title="${esc(r.contact_title)}">${esc(r.contact_title)}</dd><dt>Checked</dt><dd><span class="tag ${vf[0]}">${vf[1]}</span>${r.contact_source.startsWith("http") ? ` <a href="${esc(r.contact_source)}" target="_blank" rel="noopener">source</a>` : ""}</dd>` : `<dt>Name</dt><dd style="color:var(--ink-3)">No named person found</dd>`}
+      ${r.to_email ? `<dt>Email</dt><dd title="${esc(r.to_email)}">${esc(r.to_email)}</dd>` : ""}
+      ${r.location ? `<dt>Location</dt><dd>${esc(r.location)}</dd>` : ""}
+      ${r.website && r.website.startsWith("http") ? `<dt>Web</dt><dd><a href="${esc(r.website)}" target="_blank" rel="noopener">${esc(host(r.website))}</a></dd>` : ""}</dl></div>
+    <div class="sec"><h3>Research notes</h3><ul class="facts">${(r.facts || []).map((f) => `<li>${esc(f.fact)}<div class="m"><span class="tag ${f.age_months != null && f.age_months <= 12 ? "ok" : ""}">${esc(f.date)}</span><a href="${esc(f.source_url)}" target="_blank" rel="noopener">${esc(host(f.source_url))}</a>${f.source_url === r.fact_source ? '<span class="tag blue">Opener</span>' : ""}</div></li>`).join("") || "<li>No notes</li>"}</ul>
+      ${r.auto_fixed ? `<details style="margin-top:10px;font-size:12px;color:var(--ink-3)"><summary style="cursor:pointer">Reviewer fixed ${r.auto_fixed.split(" | ").length} issue(s)</summary><ul style="padding-left:16px">${r.auto_fixed.split(" | ").map((f) => `<li>${esc(f)}</li>`).join("")}</ul></details>` : ""}</div>`;
+}
+function renderPanel() {
+  const show = S.open != null && S.panel;
+  $("panel").classList.toggle("open", show);
+  $("railbtn").setAttribute("aria-pressed", String(show));
+  $("pbody").innerHTML = S.open != null ? research(rows[S.open]) : "";
 }
 
-// ---------- actions ----------
-function toggleSent(r) {
-  if (state.sent[r.target]) delete state.sent[r.target]; else state.sent[r.target] = new Date().toISOString().slice(0, 10);
-  store.set("sent", state.sent);
-  toast(state.sent[r.target] ? `Marked ${r.target} as sent` : "Unmarked");
-  render();
+// ---------- compose ----------
+function openCompose(r, kind) {
+  S.compose = { i: rows.indexOf(r), kind };
+  const d = draft(r), field = { email: "body", followup: "followup", note: "note" }[kind];
+  const title = { email: r.channel === "contact form" ? "Contact form message" : "Draft", followup: "Follow-up", note: "LinkedIn note" }[kind];
+  const toLine = kind === "note" ? `${esc(recipient(r))} (LinkedIn)` : r.channel === "contact form" ? `${esc(host(r.contact_form))} contact form` : r.to_email ? `${esc(recipient(r))} &lt;${esc(r.to_email)}&gt;` : "No address found";
+  const c = $("compose");
+  c.innerHTML = `
+    <div class="ch"><span>${title}: ${esc(r.target)}</span><button class="ib sm" id="cmin" title="Minimize">${I("min")}</button><button class="ib sm" id="cclose" title="Save &amp; close (Esc)">${I("close")}</button></div>
+    <div class="cf">To <span class="rcp">${toLine}</span></div>
+    ${kind === "note" ? "" : `<div class="cf"><input id="f-subject" placeholder="Subject" value="${esc(kind === "followup" ? "Re: " + d.subject : d.subject)}" ${kind === "followup" ? "disabled" : ""} aria-label="Subject"></div>`}
+    <div class="cb"><textarea id="f-body" aria-label="Message">${esc(d[field])}</textarea>${kind === "email" && r.footer ? `<div class="mfoot" title="Added automatically">${esc(r.footer)}</div>` : ""}</div>
+    <div class="cbar"><a class="send" id="c-send" target="_blank" rel="noopener">${I("send", 'style="width:18px;height:18px"')}<span></span></a>
+      <span class="grow"></span><span class="edited ${edited(r) ? "show" : ""}" id="edited">Saved</span><span class="wc" id="wc"></span>
+      <button class="ib sm" id="reset" title="Discard edits (revert to the reviewed draft)">${I("trash")}</button></div>`;
+  c.classList.add("open");
+  const ta = $("f-body"), sj = $("f-subject");
+  const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+  const refresh = () => {
+    const t = ta.value, w = words(t), [lo, hi] = kind === "followup" ? [15, 60] : [50, 110];
+    $("wc").textContent = kind === "note" ? `${t.length}/300` : `${w} words`;
+    $("wc").classList.toggle("off", kind === "note" ? t.length > 300 : w < lo || w > hi);
+    const a = primaryAction(r, kind), s = $("c-send");
+    s.querySelector("span").textContent = a ? a.label : "No channel to send through";
+    s.setAttribute("aria-disabled", String(!a)); if (a) s.href = a.href; else s.removeAttribute("href");
+  };
+  ta.oninput = () => { setEdit(r, field, ta.value); grow(); refresh(); $("edited").classList.add("show"); renderSoft(); };
+  if (sj && kind !== "followup") sj.oninput = () => { setEdit(r, "subject", sj.value); refresh(); $("edited").classList.add("show"); renderSoft(); };
+  $("reset").onclick = () => { delete S.edits[r.target]; store.set("edits", S.edits); closeCompose(); render(); snack("Edits discarded"); };
+  $("cclose").onclick = closeCompose; $("cmin").onclick = closeCompose;
+  grow(); refresh(); ta.focus(); ta.setSelectionRange(0, 0);
 }
-function select(i) { state.sel = i; document.body.classList.add("detail"); render(); const el = document.querySelector(`.item[data-i="${i}"]`); if (el) el.scrollIntoView({ block: "nearest" }); }
-function renderListLite() { const top = $("items").scrollTop; renderList(); $("items").scrollTop = top; }
-function render() { renderTop(); renderListLite(); renderDetail(); }
+function closeCompose() {
+  // Release focus from the hidden textarea, or keyboard shortcuts would think the user is still typing.
+  if ($("compose").contains(document.activeElement)) document.activeElement.blur();
+  $("compose").classList.remove("open"); S.compose = null;
+}
+function renderSoft() { if (S.open != null) { const rv0 = $("main").querySelector(".read-view"), y = rv0 ? rv0.scrollTop : 0; renderRead(); const rv = $("main").querySelector(".read-view"); if (rv) rv.scrollTop = y; } renderNav(); }
 
-$("seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; state.filter = b.dataset.f; store.set("filter", state.filter); const v = visible(); if (v.length && !v.some(([, i]) => i === state.sel)) state.sel = v[0][1]; render(); };
-$("q").oninput = (e) => { state.q = e.target.value; renderListLite(); };
-$("items").onclick = (e) => { const it = e.target.closest(".item"); if (it) select(+it.dataset.i); };
+// ---------- shell ----------
+function render() {
+  renderNav();
+  if (S.open != null) renderRead(); else renderList();
+  renderPanel();
+}
+$("q").oninput = (e) => { S.q = e.target.value; $("qclear").style.visibility = S.q ? "visible" : "hidden"; S.open = null; S.cursor = 0; if (S.q && S.folder !== "all") { S.folder = "all"; } render(); };
+$("qclear").onclick = () => { $("q").value = ""; S.q = ""; $("qclear").style.visibility = "hidden"; render(); };
+$("menu").onclick = () => document.body.classList.toggle("drawer");
+$("railbtn").onclick = () => { S.panel = !S.panel; store.set("panel", S.panel); renderPanel(); };
+$("pclose").onclick = () => { S.panel = false; store.set("panel", false); renderPanel(); };
 $("theme").onclick = () => {
   const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   document.documentElement.dataset.theme = dark ? "light" : "dark";
@@ -487,21 +582,26 @@ $("theme").onclick = () => {
 try { const t = localStorage.getItem("outreach:theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 document.addEventListener("keydown", (e) => {
   const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
-  if (e.key === "Escape" && typing) { document.activeElement.blur(); return; }
+  if (e.key === "Escape") { if (S.compose) { closeCompose(); return; } if (typing) { document.activeElement.blur(); return; } if (S.open != null) { S.open = null; render(); } return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-  const v = visible().map(([, i]) => i), pos = v.indexOf(state.sel);
-  if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); if (v.length) select(v[Math.min(v.length - 1, pos + 1)]); }
-  else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); if (v.length) select(v[Math.max(0, pos - 1)]); }
-  else if (e.key === "s") toggleSent(rows[state.sel]);
-  else if (e.key === "e") { e.preventDefault(); const t = $("main").querySelector("textarea"); if (t) t.focus(); }
+  const v = visible().map(([, i]) => i);
+  if (e.key === "j" || e.key === "ArrowDown") { e.preventDefault(); if (S.open != null) { const p = v.indexOf(S.open); if (p < v.length - 1) openRow(v[p + 1]); } else { S.cursor = Math.min(v.length - 1, S.cursor + 1); renderList(); } }
+  else if (e.key === "k" || e.key === "ArrowUp") { e.preventDefault(); if (S.open != null) { const p = v.indexOf(S.open); if (p > 0) openRow(v[p - 1]); } else { S.cursor = Math.max(0, S.cursor - 1); renderList(); } }
+  else if ((e.key === "o" || e.key === "Enter") && S.open == null && v.length) openRow(v[S.cursor]);
+  else if (e.key === "u" && S.open != null) { S.open = null; render(); }
+  else if (e.key === "s") { const r = S.open != null ? rows[S.open] : rows[v[S.cursor]]; if (r) setSent([r], !isSent(r)); }
+  else if (e.key === "e" && S.open != null) { e.preventDefault(); const r = rows[S.open]; openCompose(r, r.channel === "LinkedIn note" ? "note" : "email"); }
   else if (e.key === "/") { e.preventDefault(); $("q").focus(); }
-  else if (e.key === "g") { const a = $("act"); if (a && a.href) window.open(a.href, "_blank", "noopener"); }
+  else if (e.key === "g") { const r = S.open != null ? rows[S.open] : rows[v[S.cursor]], a = r && primaryAction(r); if (a) window.open(a.href, "_blank", "noopener"); }
 });
 
-const first = visible()[0];
-state.sel = first ? first[1] : 0;
+M.short = fmt(new Date().toISOString().slice(0, 10));
+M.senderColor = colorOf(M.sender || "You");
+$("me").textContent = ini(M.sender || "You"); $("me").style.background = M.senderColor; $("me").title = M.sender || "";
+$("demochip").hidden = !M.demo;
+document.title = `Outreach · ${M.company || "drafts"}`;
+if (S.folder !== "all" && !S.folder.startsWith("ch:") && !rows.some((r) => folderOf(r) === S.folder)) S.folder = rows.some((r) => folderOf(r) === "drafts") ? "drafts" : "all";
 render();
-document.body.classList.remove("detail");
 })();
 </script>
 </body>
