@@ -13,6 +13,8 @@ LinkedIn note. Results land on a review page with a one-click action per target.
 
 ## Quick start
 
+Needs Python 3.10+ and macOS or Linux.
+
 ```bash
 git clone https://github.com/A5bhinav/outreach-agent && cd outreach-agent
 ./setup.sh                          # virtualenv, dependencies, tests, offline demo
@@ -199,8 +201,9 @@ GitHub Actions runs it on every push.
 ## Cost
 
 A 5-target companies run makes roughly 30-40 Claude calls and under 100 web searches, and
-takes about 5-10 minutes. Cost scales roughly linearly with `--n`. The plan step prints an
-estimate before you confirm, and the final log line prints totals by step.
+takes about 5-10 minutes. These are estimates until a real run confirms them. Cost scales
+roughly linearly with the number of targets. The plan preview shows an estimate before you
+confirm, and each run's `run.json` records actual usage by step.
 
 ## Rules baked in
 
@@ -210,7 +213,11 @@ estimate before you confirm, and the final log line prints totals by step.
 - **People search:** it reports evidence of work only. No scores are shown, no personal traits are inferred, and a person decides whom to contact.
 - **Sending:** no sending code exists. Review every message yourself.
 
-`examples/` holds a 5-company demo from an earlier version, produced partly by hand. A fresh run with a real profile is the best demo.
+## Status
+
+Everything above is verified on the offline demo and by the test suite, which uses a scripted
+stand-in for Claude. It hasn't yet been run end to end against the live API. For a first real
+run, add your Anthropic API key in Settings and try 5 targets for one portfolio company.
 
 Not built: Harmonic and Affinity integrations, and creating Gmail drafts through the Gmail API.
 The Gmail compose links and `.eml` drafts cover sending without OAuth setup.
